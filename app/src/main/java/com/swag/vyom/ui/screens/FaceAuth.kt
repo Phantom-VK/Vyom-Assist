@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -28,18 +29,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
 
-
-//@Preview(showSystemUi = true)
 @Composable
 fun FaceAuth(navController: NavHostController){
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp, 0.dp).verticalScroll(rememberScrollState()),
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         RoundedCornerCard()
@@ -85,7 +85,7 @@ fun AuthPart(navController: NavHostController){
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-///
+
 
         Row(modifier = Modifier.padding(20.dp, 0.dp)){
             Image(
@@ -104,4 +104,10 @@ fun AuthPart(navController: NavHostController){
         }
 
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFaceAuth(){
+    FaceAuth(navController = rememberNavController())
 }
