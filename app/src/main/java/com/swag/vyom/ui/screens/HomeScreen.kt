@@ -1,11 +1,27 @@
 package com.swag.vyom.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,33 +32,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
+fun HomeScreen() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        TopBar()
-        AccountInfo()
-        QuickTask()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
+            TopBar()
+            AccountInfo()
+            QuickTask()
+            Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scrolling
+        }
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun HomePreview() {
-    HomeScreen(rememberNavController())
 }
 
 @Composable
@@ -56,7 +72,10 @@ fun TopBar() {
         Image(
             painter = painterResource(R.drawable.ic_profile),
             contentDescription = "Profile",
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -64,23 +83,26 @@ fun TopBar() {
         Image(
             painter = painterResource(R.drawable.logo),
             contentDescription = "App Logo",
-            modifier = Modifier.size(70.dp)
+            modifier = Modifier
+                .size(70.dp)
+                .padding(horizontal = 8.dp),
+            contentScale = ContentScale.Fit
         )
-
-        Spacer(modifier = Modifier.width(16.dp))
 
         Card(
             colors = CardDefaults.cardColors(containerColor = LightSkyBlue),
             modifier = Modifier
                 .height(45.dp)
                 .clip(shape = RoundedCornerShape(22.5.dp)),
-            elevation = CardDefaults.cardElevation(4.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = RoundedCornerShape(22.5.dp)
         ) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 12.dp)
                     .fillMaxHeight(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_search),
@@ -88,8 +110,6 @@ fun TopBar() {
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(24.dp)
                 )
-
-                Spacer(modifier = Modifier.width(16.dp))
 
                 Image(
                     painter = painterResource(id = R.drawable.ic_bell),
@@ -120,27 +140,28 @@ fun AccountInfo() {
         Text(
             text = "Gajanan Palepwad",
             fontSize = 23.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Account cards
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             AccountCard(
                 title = "Deposits",
                 amount = "₹ xxxxx",
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                modifier = Modifier.weight(1f)
             )
 
             AccountCard(
                 title = "Borrowings",
                 amount = "₹ 0.00",
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
+                modifier = Modifier.weight(1f)
             )
         }
 
@@ -153,7 +174,7 @@ fun AccountInfo() {
             amount = "₹ xxxxxx",
             amountColor = SkyBlue,
             modifier = Modifier
-                .widthIn(max = 200.dp)
+                .fillMaxWidth(0.5f) // Make the card 50% of screen width
                 .align(Alignment.Start)
         )
     }
@@ -169,9 +190,9 @@ fun AccountCard(
 ) {
     Card(
         modifier = modifier
-            .shadow(elevation = 2.dp, shape = RoundedCornerShape(8.dp))
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+            .shadow(elevation = 2.dp, shape = RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)
@@ -179,7 +200,9 @@ fun AccountCard(
             Text(
                 text = title,
                 fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             if (accountNumber != null) {
@@ -187,7 +210,9 @@ fun AccountCard(
                 Text(
                     text = accountNumber,
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -197,7 +222,9 @@ fun AccountCard(
                 text = amount,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = amountColor
+                color = amountColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -232,9 +259,10 @@ fun QuickTask() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Quick task cards
+        // Quick task cards - using GridArrangement for more responsiveness
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             QuickTaskCard(
                 iconResId = R.drawable.ic_chatbot,
@@ -242,7 +270,6 @@ fun QuickTask() {
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .padding(end = 8.dp)
             )
 
             QuickTaskCard(
@@ -251,15 +278,18 @@ fun QuickTask() {
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .padding(start = 8.dp)
             )
 
-            // Empty space for the third column
-            Spacer(
+            // Add a third empty card with placeholder for future use
+            Card(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 8.dp)
-            )
+                    .aspectRatio(1f),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                // Empty card placeholder
+            }
         }
     }
 }
@@ -271,11 +301,15 @@ fun QuickTaskCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = LightSkyBlue)
+        modifier = modifier
+            .shadow(4.dp, RoundedCornerShape(8.dp)),
+        colors = CardDefaults.cardColors(containerColor = LightSkyBlue),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -284,15 +318,24 @@ fun QuickTaskCard(
                 contentDescription = title,
                 modifier = Modifier
                     .size(50.dp)
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 8.dp),
+                contentScale = ContentScale.Fit
             )
 
             Text(
                 text = title,
                 color = SkyBlue,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun HomePreview() {
+    HomeScreen()
 }
