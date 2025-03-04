@@ -3,9 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Vyom.iml" filepath="$PROJECT_DIR$/.idea/modules/Vyom.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom-Assist.Vyom.app.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom.app.androidTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom.app.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Vyom.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Vyom.app.unitTest.iml" />
     </modules>
   </component>

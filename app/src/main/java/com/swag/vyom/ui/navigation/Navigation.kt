@@ -28,7 +28,7 @@ fun Navigation(
             FaceAuth(navController)
         }
         composable("home_screen") {
-            HomeScreen(navController)
+            HomeScreen()
         }
     }
 }
