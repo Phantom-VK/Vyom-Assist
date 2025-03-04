@@ -1,44 +1,19 @@
 package com.swag.vyom.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,17 +24,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.swag.vyom.R
+import com.swag.vyom.dataclasses.*
 import com.swag.vyom.ui.components.CustomDropdown
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.viewmodels.TicketViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TicketGenerationScreen(
-    onBackClick: () -> Unit = {},
-    onGenerateClick: () -> Unit = {}
+    ticketViewModel: TicketViewModel,
+    onBackClick: () -> Unit = {}
 ) {
+    var category by remember { mutableStateOf("") }
+    var subCategory by remember { mutableStateOf("") }
+    var urgencyLevel by remember { mutableStateOf(UrgencyLevel.Low) }
+    var supportMode by remember { mutableStateOf<SupportMode?>(null) }
+    var availableTimeSlot by remember { mutableStateOf("") }
+    var languagePreference by remember { mutableStateOf("English") }
+    var queryDescription by remember { mutableStateOf("") }
+    var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -86,12 +75,34 @@ fun TicketGenerationScreen(
         },
         bottomBar = {
             Button(
-                onClick = onGenerateClick,
+                onClick = {
+                    val ticket = Ticket(
+                        user_id = 1, // Replace with actual user ID
+                        category = category,
+                        sub_category = subCategory,
+                        urgency_level = urgencyLevel.toString(),
+                        preferred_support_mode = supportMode?.toString() ?: "",
+                        available_timedate = LocalDateTime.now().plusDays(1)
+                            .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        language_preference = languagePreference,
+                        description = queryDescription,
+                        audio_file_link = "", // Add if needed
+                        video_file_link = "", // Add if needed
+                        attached_image_link = "", // Add if needed
+                        assigned_department = "", // Add if needed
+                        priority_level = priorityLevel.toString()
+                    )
+                    ticketViewModel.createTicket(ticket)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = AppRed),
                 shape = RoundedCornerShape(10.dp),
+                enabled = category.isNotBlank() &&
+                        queryDescription.isNotBlank() &&
+                        subCategory.isNotBlank() &&
+                        supportMode != null
             ) {
                 Text(
                     text = "Generate",
@@ -101,15 +112,18 @@ fun TicketGenerationScreen(
             }
         }
     ) { paddingValues ->
-        var queryDescription by remember { mutableStateOf("") }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            QuerySelectionSection()
+            QuerySelectionSection(
+                onCategorySelected = { category = it },
+                onSubCategorySelected = { subCategory = it },
+                onUrgencyLevelSelected = { urgencyLevel = it },
+                onPriorityLevelSelected = { priorityLevel = it }
+            )
 
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -117,7 +131,11 @@ fun TicketGenerationScreen(
                 color = Color.Black
             )
 
-            SupportModeSection()
+            SupportModeSection(
+                onSupportModeSelected = { supportMode = it },
+                onTimeSlotSelected = { availableTimeSlot = it },
+                onLanguageSelected = { languagePreference = it }
+            )
 
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -169,7 +187,6 @@ fun TicketGenerationScreen(
                     unfocusedContainerColor = Color.White,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Gray,
-
                     disabledIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
@@ -182,7 +199,12 @@ fun TicketGenerationScreen(
 }
 
 @Composable
-private fun QuerySelectionSection() {
+private fun QuerySelectionSection(
+    onCategorySelected: (String) -> Unit,
+    onSubCategorySelected: (String) -> Unit,
+    onUrgencyLevelSelected: (UrgencyLevel) -> Unit,
+    onPriorityLevelSelected: (PriorityLevel) -> Unit
+) {
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 20.dp),
         text = "Query Selection",
@@ -197,23 +219,36 @@ private fun QuerySelectionSection() {
     ) {
         CustomDropdown(
             placeHolder = "Category",
-            options = listOf("Category 1", "Category 2", "Category 3")
+            options = listOf("IT Support", "Finance", "HR", "Sales"),
+            onOptionSelected = onCategorySelected
         )
         Spacer(modifier = Modifier.height(8.dp))
         CustomDropdown(
             placeHolder = "Sub Category",
-            options = listOf("Sub Category 1", "Sub Category 2", "Sub Category 3")
+            options = listOf("Technical Issue", "Software Request", "Access Rights"),
+            onOptionSelected = onSubCategorySelected
         )
         Spacer(modifier = Modifier.height(8.dp))
         CustomDropdown(
             placeHolder = "Urgency Level",
-            options = listOf("High", "Mid", "Low")
+            options = UrgencyLevel.entries.map { it.toString() },
+            onOptionSelected = { onUrgencyLevelSelected(UrgencyLevel.valueOf(it)) }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        CustomDropdown(
+            placeHolder = "Priority Level",
+            options = PriorityLevel.entries.map { it.toString() },
+            onOptionSelected = { onPriorityLevelSelected(PriorityLevel.valueOf(it)) }
         )
     }
 }
 
 @Composable
-fun SupportModeSection() {
+fun SupportModeSection(
+    onSupportModeSelected: (SupportMode) -> Unit,
+    onTimeSlotSelected: (String) -> Unit,
+    onLanguageSelected: (String) -> Unit
+) {
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 8.dp),
         text = "Preferred Support Mode",
@@ -235,15 +270,18 @@ fun SupportModeSection() {
         ) {
             SupportModeOption(
                 icon = R.drawable.fluent_video_person_call_16_regular,
-                text = "Video Call"
+                text = "Video Call",
+                onSelect = { onSupportModeSelected(SupportMode.Video_Call) }
             )
             SupportModeOption(
                 icon = R.drawable.call_icon,
-                text = "Audio Call"  // Fixed the text
+                text = "Audio Call",
+                onSelect = { onSupportModeSelected(SupportMode.Voice_Call) }
             )
             SupportModeOption(
                 icon = R.drawable.gridicons_chat,
-                text = "Chat"  // Fixed the text
+                text = "Chat",
+                onSelect = { onSupportModeSelected(SupportMode.Text_Message) }
             )
         }
 
@@ -251,14 +289,16 @@ fun SupportModeSection() {
 
         CustomDropdown(
             placeHolder = "Available Time Slot",
-            options = listOf("Slot 1", "Slot 2", "Slot 3")
+            options = listOf("Morning", "Afternoon", "Evening"),
+            onOptionSelected = onTimeSlotSelected
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         CustomDropdown(
             placeHolder = "Language Preference",
-            options = listOf("Hindi", "English", "Marathi")
+            options = listOf("English", "Hindi", "Marathi"),
+            onOptionSelected = onLanguageSelected
         )
     }
 }
@@ -267,7 +307,7 @@ fun SupportModeSection() {
 fun SupportModeOption(
     icon: Int,
     text: String,
-    onClick: () -> Unit = {}
+    onSelect: () -> Unit
 ) {
     var isSelected by remember { mutableStateOf(false) }
 
@@ -286,7 +326,7 @@ fun SupportModeOption(
             .clip(RoundedCornerShape(10.dp))
             .clickable {
                 isSelected = !isSelected
-                onClick()
+                onSelect()
             }
     ) {
         Column(
@@ -352,8 +392,10 @@ fun AttachmentOptions(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun PreviewTicketScreen() {
-    TicketGenerationScreen()
+    val ticketViewModel = TicketViewModel()
+    TicketGenerationScreen(ticketViewModel = ticketViewModel)
 }

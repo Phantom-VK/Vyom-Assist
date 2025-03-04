@@ -1,6 +1,7 @@
 package com.swag.vyom.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,13 +37,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    navController: NavController
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -55,7 +60,7 @@ fun HomeScreen() {
         ) {
             TopBar()
             AccountInfo()
-            QuickTask()
+            QuickTask(navController)
             Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scrolling
         }
     }
@@ -231,7 +236,9 @@ fun AccountCard(
 }
 
 @Composable
-fun QuickTask() {
+fun QuickTask(
+    navController: NavController
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -270,7 +277,9 @@ fun QuickTask() {
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-            )
+            ){
+//                navController.navigate("chatbot")
+            }
 
             QuickTaskCard(
                 iconResId = R.drawable.ic_support,
@@ -278,7 +287,9 @@ fun QuickTask() {
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-            )
+            ){
+                navController.navigate("ticket_screen")
+            }
 
             // Add a third empty card with placeholder for future use
             Card(
@@ -298,11 +309,15 @@ fun QuickTask() {
 fun QuickTaskCard(
     iconResId: Int,
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
-            .shadow(4.dp, RoundedCornerShape(8.dp)),
+            .shadow(4.dp, RoundedCornerShape(8.dp))
+            .clickable {
+                onClick()
+            },
         colors = CardDefaults.cardColors(containerColor = LightSkyBlue),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -337,5 +352,5 @@ fun QuickTaskCard(
 @Preview(showSystemUi = true)
 @Composable
 fun HomePreview() {
-    HomeScreen()
+    HomeScreen(rememberNavController())
 }

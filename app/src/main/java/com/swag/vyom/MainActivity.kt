@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.ui.navigation.Navigation
 import com.swag.vyom.ui.theme.VyomTheme
+import com.swag.vyom.viewmodels.TicketViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,13 +16,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             VyomTheme {
 
-                val navController = rememberNavController()  
+                val navController = rememberNavController()
+                val vm = TicketViewModel()
 
               Navigation(
-                  navController = navController
+                  navController = navController,
+                  ticketViewModel = vm
+
               )
 
             }
         }
     }
 }
+

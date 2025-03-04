@@ -1,5 +1,7 @@
 package com.swag.vyom.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -8,15 +10,19 @@ import com.swag.vyom.ui.screens.FaceAuth
 import com.swag.vyom.ui.screens.HomeScreen
 import com.swag.vyom.ui.screens.SigninScreen
 import com.swag.vyom.ui.screens.SplashScreen
+import com.swag.vyom.ui.screens.TicketGenerationScreen
+import com.swag.vyom.viewmodels.TicketViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(
-    navController: NavHostController
+    navController: NavHostController,
+    ticketViewModel: TicketViewModel
 
 ) {
     NavHost(
         navController = navController,
-        startDestination = "splash_screen"
+        startDestination = "ticket_screen"
     ) {
         composable("splash_screen") {
             SplashScreen(navController)
@@ -28,7 +34,13 @@ fun Navigation(
             FaceAuth(navController)
         }
         composable("home_screen") {
-            HomeScreen()
+            HomeScreen(navController)
         }
+        composable("ticket_screen") {
+            TicketGenerationScreen(ticketViewModel = ticketViewModel, onBackClick = {
+                navController.navigateUp()
+            })
+        }
+
     }
 }

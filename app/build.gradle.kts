@@ -59,4 +59,28 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose)
 
+    testImplementation(libs.kotlinx.coroutines.test)
+
+    // Retrofit for network calls
+    implementation(libs.retrofit)
+    // Gson converter for JSON parsing
+    implementation( libs.converter.gson)
+    // Kotlin Coroutines for asynchronous programming
+    implementation(libs.kotlinx.coroutines.android)
+    // OkHttp for network operations
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+
+
+    // Moshi (for JSON serialization/deserialization)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi)
+    implementation(libs.moshi.adapters)
+
+    // Retrofit Moshi Converter (to use Moshi with Retrofit)
+    implementation(libs.converter.moshi)
+
+
+
 }
