@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,13 +37,21 @@ import com.swag.vyom.ui.theme.SkyBlue
 
 @Composable
 fun FaceAuth(navController: NavHostController){
+
+    // Get screen dimensions to make UI responsive
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RoundedCornerCard()
+        RoundedCornerCard(
+            screenWidth,
+            screenHeight
+        )
         Column(modifier = Modifier.offset(0.dp, -80.dp)) {
             AuthPart(navController)
         }

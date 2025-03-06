@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.swag.vyom.ui.screens.FaceAuth
 import com.swag.vyom.ui.screens.HomeScreen
-import com.swag.vyom.ui.screens.SigninScreen
+import com.swag.vyom.ui.screens.NumberVerificationScreen
 import com.swag.vyom.ui.screens.SplashScreen
 import com.swag.vyom.ui.screens.TicketGenerationScreen
 import com.swag.vyom.viewmodels.TicketViewModel
@@ -28,7 +28,7 @@ fun Navigation(
             SplashScreen(navController)
         }
         composable("signin_screen") {
-            SigninScreen(navController)
+            NumberVerificationScreen(navController)
         }
         composable("face_auth") {
             FaceAuth(navController)

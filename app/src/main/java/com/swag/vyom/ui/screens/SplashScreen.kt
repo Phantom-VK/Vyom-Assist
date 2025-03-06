@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
@@ -17,6 +18,12 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavHostController){
+
+
+    // Get screen dimensions to make UI responsive
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
 
     LaunchedEffect(Unit) {
         delay(3000)
@@ -30,7 +37,10 @@ fun SplashScreen(navController: NavHostController){
             .padding(10.dp, 0.dp).verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        RoundedCornerCard()
+        RoundedCornerCard(
+            screenWidth,
+            screenHeight
+        )
         CircularProgressIndicator()
     }
 }
