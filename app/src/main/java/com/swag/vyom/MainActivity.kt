@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.ui.navigation.Navigation
 import com.swag.vyom.ui.theme.VyomTheme
+import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 
 class MainActivity : ComponentActivity() {
@@ -20,11 +21,13 @@ class MainActivity : ComponentActivity() {
             VyomTheme {
 
                 val navController = rememberNavController()
-                val vm = TicketViewModel()
+                val ticketViewModel = TicketViewModel()
+                val authVM = AuthViewModel()
 
               Navigation(
                   navController = navController,
-                  ticketViewModel = vm
+                  ticketViewModel = ticketViewModel,
+                  authVM = authVM
 
               )
 

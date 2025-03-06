@@ -10,7 +10,6 @@ data class UserData(
     val id: Int,
     val email: String,
     val name: String,
-    val mobile_number:String?
 )
 
 

@@ -95,8 +95,7 @@ fun TicketGenerationScreen(
                         assigned_department = "", // Add if needed
                         priority_level = priorityLevel.toString()
                     )
-//                    ticketViewModel.createTicket(ticket)
-                    chatvm.askQuestion("What is atm?")
+                    ticketViewModel.createTicket(ticket)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

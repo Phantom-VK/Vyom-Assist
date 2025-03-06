@@ -1,5 +1,6 @@
 package com.swag.vyom.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,19 +22,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.ui.components.CustomDropdown
 import com.swag.vyom.ui.components.CustomEditText
 import com.swag.vyom.ui.components.PasswordEditText
 import com.swag.vyom.ui.theme.AppRed
+import com.swag.vyom.viewmodels.AuthViewModel
 
 @Composable
-fun RegistrationScreen(navController: NavHostController) {
-    // Get screen dimensions to make UI responsive
+fun RegistrationScreen(
+    navController: NavHostController,
+    authVM: AuthViewModel
+) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
@@ -46,11 +49,8 @@ fun RegistrationScreen(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        RoundedCornerCard(
-            screenWidth,
-            screenHeight
-        )
-        // Form fields
+        RoundedCornerCard(screenWidth, screenHeight)
+
         var aadharNo by remember { mutableStateOf("") }
         var mobileNo by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
@@ -58,52 +58,24 @@ fun RegistrationScreen(navController: NavHostController) {
         var confirmPassword by remember { mutableStateOf("") }
         var language by remember { mutableStateOf("") }
 
-        CustomEditText(
-            value = aadharNo,
-            onValueChange = { aadharNo = it },
-            label = "Aadhar Card Number"
-        )
-
+        CustomEditText(value = aadharNo, onValueChange = { aadharNo = it }, label = "Aadhar Card Number")
         Spacer(modifier = Modifier.height(16.dp))
 
-        CustomEditText(
-            value = mobileNo,
-            onValueChange = { mobileNo = it },
-            label = "Mobile Number"
-        )
-
+        CustomEditText(value = mobileNo, onValueChange = { mobileNo = it }, label = "Mobile Number")
         Text(
             text = "*Enter mobile number which is connected to your bank account",
             fontSize = 11.sp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, top = 4.dp)
+            modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
 
-        CustomEditText(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email address"
-        )
-
+        CustomEditText(value = email, onValueChange = { email = it }, label = "Email address")
         Spacer(modifier = Modifier.height(16.dp))
 
-        PasswordEditText(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password"
-        )
-
+        PasswordEditText(value = password, onValueChange = { password = it }, label = "Password")
         Spacer(modifier = Modifier.height(16.dp))
 
-        PasswordEditText(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = "Confirm Password"
-        )
-
+        PasswordEditText(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirm Password")
         Spacer(modifier = Modifier.height(16.dp))
 
         CustomDropdown(
@@ -111,32 +83,46 @@ fun RegistrationScreen(navController: NavHostController) {
             options = listOf("English", "Hindi", "Tamil", "Telugu", "Kannada", "Malayalam"),
             onOptionSelected = { language = it }
         )
-
         Spacer(modifier = Modifier.height(40.dp))
 
         Button(
             onClick = {
-//                navController.navigate("otp_verification") {
-//                    popUpTo("registration_screen") { inclusive = true }
-//                }
+                if (password == confirmPassword) {
+                    val user = UserRegistrationRequest(
+                        mobile_number = mobileNo,
+                        aadhaar = aadharNo,
+                        account_number = " ", // Empty
+                        first_name = " ", // Empty
+                        last_name = " ", // Empty
+                        date_of_birth = " ", // Empty
+                        gender = " ", // Empty
+                        email = email,
+                        password = password,
+                        image_link = "", // Empty
+                        aadhaar_image_link = "", // Empty
+                        address = "", // Empty
+                        country = "India",
+                        language_preference = language
+                    )
+                    authVM.register(user)
+//                    navController.navigate("otp_verification") {
+//                        popUpTo("registration_screen") { inclusive = true }
+//                    }
+                } else {
+                    Log.e("AuthViewModel", "Passwords do not match")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AppRed),
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(10.dp)
         ) {
-            Text(
-                text = "Next",
-                color = Color.White,
-                fontSize = 16.sp
-            )
+            Text(text = "Next", color = Color.White, fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-
         CustomerCareInfo()
-
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
@@ -145,8 +131,9 @@ fun RegistrationScreen(navController: NavHostController) {
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewRegistrationScreen() {
-    RegistrationScreen(rememberNavController())
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewRegistrationScreen() {
+//    RegistrationScreen(rememberNavController())
+//}
