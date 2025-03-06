@@ -29,6 +29,7 @@ import com.swag.vyom.ui.components.CustomDropdown
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.viewmodels.ChatbotViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -48,6 +49,8 @@ fun TicketGenerationScreen(
     var languagePreference by remember { mutableStateOf("English") }
     var queryDescription by remember { mutableStateOf("") }
     var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
+
+    val chatvm = ChatbotViewModel()
 
     Scaffold(
         topBar = {
@@ -92,7 +95,8 @@ fun TicketGenerationScreen(
                         assigned_department = "", // Add if needed
                         priority_level = priorityLevel.toString()
                     )
-                    ticketViewModel.createTicket(ticket)
+//                    ticketViewModel.createTicket(ticket)
+                    chatvm.askQuestion("What is atm?")
                 },
                 modifier = Modifier
                     .fillMaxWidth()

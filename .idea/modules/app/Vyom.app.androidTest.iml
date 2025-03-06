@@ -14,7 +14,7 @@
       <configuration version="5" platform="JVM 11" allPlatforms="JVM [11]" useProjectSettings="false">
         <additionalVisibleModuleNames>:app:main</additionalVisibleModuleNames>
         <compilerSettings>
-          <option name="additionalArguments" value="-Xallow-unstable-dependencies" />
+          <option name="additionalArguments" value="-Xallow-unstable-dependencies -Xuse-inline-scopes-numbers" />
         </compilerSettings>
         <compilerArguments>
           <flagArguments>

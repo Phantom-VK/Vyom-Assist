@@ -1,6 +1,8 @@
 package com.swag.vyom.api
 
 import com.swag.vyom.dataclasses.ApiTicketResponse
+import com.swag.vyom.dataclasses.ChatRequest
+import com.swag.vyom.dataclasses.ChatResponse
 import com.swag.vyom.dataclasses.Ticket
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -15,4 +17,12 @@ interface ApiService {
 
 
 
+
+}
+
+interface ChatbotApiService {
+    @POST("chat")
+    suspend fun sendMessage(
+        @Body request: ChatRequest
+    ): ChatResponse
 }

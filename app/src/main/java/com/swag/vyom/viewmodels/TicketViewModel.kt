@@ -6,13 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swag.vyom.api.RetrofitClient
-import com.swag.vyom.dataclasses.PriorityLevel
-import com.swag.vyom.dataclasses.SupportMode
 import com.swag.vyom.dataclasses.Ticket
-import com.swag.vyom.dataclasses.UrgencyLevel
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class TicketViewModel: ViewModel() {
 

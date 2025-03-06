@@ -1,9 +1,9 @@
 package com.swag.vyom.dataclasses
 
-data class ApiLoginResponse(
+data class UserLoginResponse(
     val success: Boolean,
     val msg: String,
-//    val data: UserData?
+    val data: UserData?
 )
 
 
