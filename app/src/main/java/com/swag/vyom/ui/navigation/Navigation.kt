@@ -26,13 +26,13 @@ fun Navigation(
 ) {
     NavHost(
         navController = navController,
-        startDestination = "login_screen"
+        startDestination = "customer_verification"
     ) {
         composable("splash_screen") {
             SplashScreen(navController)
         }
-        composable("signin_screen") {
-            NumberVerificationScreen(navController)
+        composable("customer_verification") {
+            NumberVerificationScreen(navController, authVM)
         }
         composable("face_auth") {
             FaceAuth(navController)

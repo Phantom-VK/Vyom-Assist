@@ -36,20 +36,19 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.ui.components.CustomEditText
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.viewmodels.AuthViewModel
 
 @Composable
-fun NumberVerificationScreen(navController: NavHostController) {
+fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel) {
     // Get screen dimensions to make UI responsive
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
@@ -64,7 +63,7 @@ fun NumberVerificationScreen(navController: NavHostController) {
     ) {
         RoundedCornerCard(screenWidth, screenHeight)
         Instructions(screenWidth)
-        InteractionPart(navController)
+        InteractionPart(navController, authVM)
     }
 }
 
@@ -152,7 +151,8 @@ fun Instructions(screenWidth: Dp) {
 }
 
 @Composable
-fun InteractionPart(navController: NavHostController) {
+fun InteractionPart(navController: NavHostController, authVM
+: AuthViewModel) {
     var aadharNo by remember { mutableStateOf("") }
     var mobileNo by remember { mutableStateOf("") }
 
@@ -212,9 +212,7 @@ fun InteractionPart(navController: NavHostController) {
 
         Button(
             onClick = {
-                navController.navigate("face_auth") {
-                    popUpTo("splash_screen") { inclusive = true }
-                }
+                authVM.checkCustomer(mobileNo, aadharNo)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -314,8 +312,8 @@ fun CustomerCareInfo() {
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewSignInScreen(){
-    NumberVerificationScreen(rememberNavController())
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewSignInScreen(){
+//    NumberVerificationScreen(rememberNavController())
+//}

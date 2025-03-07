@@ -61,6 +61,24 @@ class AuthViewModel: ViewModel() {
         }
     }
 
+    fun checkCustomer(mobileNumber: String? = null, aadhaar: String? = null) {
+        if (mobileNumber.isNullOrBlank() && aadhaar.isNullOrBlank()) {
+            Log.e("AuthViewModel", "Both fields are empty")
+            return
+        }
 
-
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.instance.checkCustomer(mobileNumber, aadhaar)
+                if (response.success && response.data != null) {
+                    Log.d("AuthViewModel", "User Exists: ${response.data.id}")
+                } else {
+                    Log.e("AuthViewModel", "User does not exist: ${response.msg}")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exception: ${e.localizedMessage}")
+            }
+        }
+    }
 }
+
