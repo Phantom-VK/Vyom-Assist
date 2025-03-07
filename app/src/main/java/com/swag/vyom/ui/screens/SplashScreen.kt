@@ -27,7 +27,7 @@ fun SplashScreen(navController: NavHostController){
 
     LaunchedEffect(Unit) {
         delay(3000)
-        navController.navigate("signin_screen") {
+        navController.navigate("customer_verification") {
             popUpTo("splash_screen") { inclusive = true }
         }
     }

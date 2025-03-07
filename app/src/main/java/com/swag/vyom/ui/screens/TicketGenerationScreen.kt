@@ -23,8 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.swag.vyom.R
 import com.swag.vyom.dataclasses.*
+import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
@@ -39,6 +41,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TicketGenerationScreen(
     ticketViewModel: TicketViewModel,
+    navController: NavController,
     onBackClick: () -> Unit = {}
 ) {
     var category by remember { mutableStateOf("") }
@@ -51,6 +54,21 @@ fun TicketGenerationScreen(
     var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
 
     val chatvm = ChatbotViewModel()
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog){
+        CustomDialog(
+            title = "Success!",
+            message = "Your Ticket has been submitted successfully.",
+            onConfirm = {
+                showDialog = false
+            },
+            onDismiss = {
+                showDialog= false
+            }
+        )
+    }
+
 
     Scaffold(
         topBar = {
@@ -96,6 +114,8 @@ fun TicketGenerationScreen(
                         priority_level = priorityLevel.toString()
                     )
                     ticketViewModel.createTicket(ticket)
+                    navController.navigate("home_screen")
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -395,10 +415,10 @@ fun AttachmentOptions(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun PreviewTicketScreen() {
-    val ticketViewModel = TicketViewModel()
-    TicketGenerationScreen(ticketViewModel = ticketViewModel)
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewTicketScreen() {
+//    val ticketViewModel = TicketViewModel()
+//    TicketGenerationScreen(ticketViewModel = ticketViewModel)
+//}

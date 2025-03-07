@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swag.vyom.dataclasses.UserLoginRequest
+import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomEditText
 import com.swag.vyom.ui.components.PasswordEditText
 import com.swag.vyom.ui.theme.AppRed
@@ -39,6 +40,17 @@ fun LoginScreen(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
+    val showDialog = remember { mutableStateOf(false) }
+
+    if(showDialog.value){
+        CustomDialog(
+            title = "Login Error",
+            message = "Invalid credentials",
+            onDismiss = { showDialog.value = false},
+            onConfirm = { showDialog.value = false }
+
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -78,6 +90,13 @@ fun LoginScreen(
                     password = password
                 )
                 authVM.login(loginRequest)
+                if(authVM.loginStatus.value == true){
+                    navController.navigate("home_screen")
+                }else{
+                    // Handle login failure
+                    showDialog.value = true
+
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -1,84 +1,98 @@
 package com.swag.vyom.viewmodels
 
-import android.R.attr.password
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swag.vyom.api.RetrofitClient
+import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.UserLoginRequest
 import com.swag.vyom.dataclasses.UserRegistrationRequest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class AuthViewModel: ViewModel() {
+class AuthViewModel : ViewModel() {
 
-    fun register(userRegistrationRequest: UserRegistrationRequest){
+    private val _registrationStatus = MutableStateFlow<Boolean?>(null)
+    val registrationStatus: StateFlow<Boolean?> = _registrationStatus
+
+    private val _loginStatus = MutableStateFlow<Boolean?>(null)
+    val loginStatus: StateFlow<Boolean?> = _loginStatus
+
+    private val _customerStatus = MutableStateFlow<CheckCustomerResponse?>(null)
+    val customerStatus: StateFlow<CheckCustomerResponse?> = _customerStatus
+
+    fun register(userRegistrationRequest: UserRegistrationRequest) {
         viewModelScope.launch {
             try {
-
-//                Log.d("AuthViewModel", "User data: ${userRegistrationRequest.mobile_number}" +
-//                        " ${userRegistrationRequest.aadhaar}" +
-//                        " ${userRegistrationRequest.account_number}" +
-//                        " ${userRegistrationRequest.first_name}" +
-//                        " ${userRegistrationRequest.last_name}" +
-//                        " ${userRegistrationRequest.date_of_birth}" +
-//                        " ${userRegistrationRequest.gender}" +
-//                        " ${userRegistrationRequest.email}" +
-//                        " ${userRegistrationRequest.password}" +
-//                        " ${userRegistrationRequest.image_link}" +
-//                        " ${userRegistrationRequest.aadhaar_image_link}" +
-//                        " ${userRegistrationRequest.address}" +
-//                        " ${userRegistrationRequest.country}" +
-//                        " ${userRegistrationRequest.language_preference}")
-
                 val response = RetrofitClient.instance.register(userRegistrationRequest)
-
-                if(response.success){
-                    val createdUser = response.data
-                    Log.d("AuthViewModel", "User created: ${createdUser.id}")
+                _registrationStatus.emit(response.success)
+                if (response.success) {
+                    Log.d("AuthViewModel", "User registered successfully: ${response.data?.id}")
                 } else {
-                    Log.e("AuthViewModel", "Error creating user: ${response.msg}")
+                    Log.e("AuthViewModel", "Registration failed: ${response.msg}")
                 }
-                }catch (e: Exception){
-                    Log.e("AuthViewModel", "Exception: ${e.message } ${e.cause}")
-
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exception during registration: ${e.localizedMessage}")
+                _registrationStatus.emit(false)
             }
         }
     }
+
     fun login(userLoginRequest: UserLoginRequest) {
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.instance.login(userLoginRequest)
+                _loginStatus.emit(response.success)
                 if (response.success) {
-                    val createdUser = response.data
-                    Log.d("AuthViewModel", "User Exists: ${createdUser?.id}")
+                    Log.d("AuthViewModel", "User login successful")
                 } else {
-                    Log.e("AuthViewModel", "User does not exists: ${response.msg}")
+                    Log.e("AuthViewModel", "Login failed: ${response.msg}")
                 }
-            }catch (e: Exception){
-                Log.e("AuthViewModel", "Exception: ${e.message } ${e.cause}")
-
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Exception during login: ${e.localizedMessage}")
+                _loginStatus.emit(false)
             }
         }
     }
 
-    fun checkCustomer(mobileNumber: String? = null, aadhaar: String? = null) {
+    suspend fun checkCustomer(mobileNumber: String?, aadhaar: String?) {
         if (mobileNumber.isNullOrBlank() && aadhaar.isNullOrBlank()) {
             Log.e("AuthViewModel", "Both fields are empty")
+            _customerStatus.emit(
+                CheckCustomerResponse(
+                    success = false,
+                    msg = "Mobile number or Aadhaar is required",
+                    data = null
+                )
+            )
             return
         }
 
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.instance.checkCustomer(mobileNumber, aadhaar)
-                if (response.success && response.data != null) {
-                    Log.d("AuthViewModel", "User Exists: ${response.data.id}")
+                _customerStatus.emit(response)
+
+                if (response.success) {
+                    if (response.data?.registered == true) {
+                        Log.d("AuthViewModel", "Redirect to Login Page")
+                    } else {
+                        Log.d("AuthViewModel", "Redirect to Register Page")
+                    }
                 } else {
-                    Log.e("AuthViewModel", "User does not exist: ${response.msg}")
+                    Log.e("AuthViewModel", "Customer not found: ${response.msg}")
                 }
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Exception: ${e.localizedMessage}")
+                Log.e("AuthViewModel", "Exception during customer check: ${e.localizedMessage}")
+                _customerStatus.emit(
+                    CheckCustomerResponse(
+                        success = false,
+                        msg = "Exception occurred",
+                        data = null
+                    )
+                )
             }
         }
     }
 }
-

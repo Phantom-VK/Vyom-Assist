@@ -22,9 +22,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,11 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swag.vyom.R
+import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomEditText
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel) {
@@ -151,10 +155,37 @@ fun Instructions(screenWidth: Dp) {
 }
 
 @Composable
-fun InteractionPart(navController: NavHostController, authVM
-: AuthViewModel) {
+fun InteractionPart(navController: NavHostController, authVM: AuthViewModel) {
     var aadharNo by remember { mutableStateOf("") }
     var mobileNo by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(authVM.customerStatus) {
+        authVM.customerStatus.collect { response ->
+            response?.let {
+                if (it.success) {
+                    if (it.data?.registered == true) {
+                        navController.navigate("face_auth")
+                    } else {
+                        navController.navigate("register_screen")
+                    }
+                } else {
+                    showDialog = true
+                }
+            }
+        }
+    }
+
+
+    if (showDialog) {
+        CustomDialog(
+            title = "Customer Not Found",
+            message = "No bank account found for given credentials.",
+            onDismiss = { showDialog = false },
+            onConfirm = { showDialog = false }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -212,7 +243,10 @@ fun InteractionPart(navController: NavHostController, authVM
 
         Button(
             onClick = {
-                authVM.checkCustomer(mobileNo, aadharNo)
+                coroutineScope.launch {
+                    authVM.checkCustomer(mobileNo, aadharNo)
+                }
+
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -227,6 +261,9 @@ fun InteractionPart(navController: NavHostController, authVM
             )
         }
 
+
+
+
         Spacer(modifier = Modifier.height(24.dp))
 
         NewCustomerCard()
@@ -236,6 +273,7 @@ fun InteractionPart(navController: NavHostController, authVM
         CustomerCareInfo()
     }
 }
+
 
 @Composable
 fun NewCustomerCard() {

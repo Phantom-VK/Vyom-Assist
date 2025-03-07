@@ -105,9 +105,9 @@ fun RegistrationScreen(
                         language_preference = language
                     )
                     authVM.register(user)
-//                    navController.navigate("otp_verification") {
-//                        popUpTo("registration_screen") { inclusive = true }
-//                    }
+                    navController.navigate("home_screen") {
+                        popUpTo("customer_verification") { inclusive = true }
+                    }
                 } else {
                     Log.e("AuthViewModel", "Passwords do not match")
                 }

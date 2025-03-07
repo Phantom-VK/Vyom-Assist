@@ -7,5 +7,7 @@ data class CheckCustomerResponse(
 )
 
 data class CustomerData(
+    val customer: Boolean,
+    val registered: Boolean,
     val id: Int? = null
 )

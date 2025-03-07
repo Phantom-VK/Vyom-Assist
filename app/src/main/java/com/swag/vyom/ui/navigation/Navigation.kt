@@ -26,7 +26,7 @@ fun Navigation(
 ) {
     NavHost(
         navController = navController,
-        startDestination = "customer_verification"
+        startDestination = "splash_screen"
     ) {
         composable("splash_screen") {
             SplashScreen(navController)
@@ -41,7 +41,7 @@ fun Navigation(
             HomeScreen(navController)
         }
         composable("ticket_screen") {
-            TicketGenerationScreen(ticketViewModel = ticketViewModel, onBackClick = {
+            TicketGenerationScreen(ticketViewModel = ticketViewModel, navController = navController, onBackClick = {
                 navController.navigateUp()
             })
         }
