@@ -1,17 +1,20 @@
 package com.swag.vyom.ui.screens
 
+import android.R.attr.contentDescription
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,13 +30,18 @@ import com.swag.vyom.R
 import com.swag.vyom.dataclasses.*
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
+import com.swag.vyom.ui.components.DatePickerModal
+import com.swag.vyom.ui.components.TimePickerDialog
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.ChatbotViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -54,6 +62,8 @@ fun TicketGenerationScreen(
     var languagePreference by remember { mutableStateOf("English") }
     var queryDescription by remember { mutableStateOf("") }
     var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
+
+    var formattedDateTime by remember { mutableStateOf("") }
 
     val userDetails by userVM.userDetails.collectAsState()
 
@@ -101,19 +111,20 @@ fun TicketGenerationScreen(
             Button(
                 onClick = {
                     val ticket = Ticket(
-                        user_id = userDetails?.id ?: 1, // Replace with actual user ID
+                        user_id = userDetails?.id ?: 1,
                         category = category,
                         sub_category = subCategory,
                         urgency_level = urgencyLevel.toString(),
                         preferred_support_mode = supportMode?.toString() ?: "",
-                        available_timedate = LocalDateTime.now().plusDays(1)
-                            .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                        available_timedate = formattedDateTime.ifEmpty {
+                            LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        },
                         language_preference = languagePreference,
                         description = queryDescription,
-                        audio_file_link = "", // Add if needed
-                        video_file_link = "", // Add if needed
-                        attached_image_link = "", // Add if needed
-                        assigned_department = "", // Add if needed
+                        audio_file_link = "",
+                        video_file_link = "",
+                        attached_image_link = "",
+                        assigned_department = "",
                         priority_level = priorityLevel.toString()
                     )
                     ticketViewModel.createTicket(ticket)
@@ -159,7 +170,7 @@ fun TicketGenerationScreen(
 
             SupportModeSection(
                 onSupportModeSelected = { supportMode = it },
-                onTimeSlotSelected = { availableTimeSlot = it },
+                onTimeSlotSelected = { formattedDateTime = it },
                 onLanguageSelected = { languagePreference = it }
             )
 
@@ -269,12 +280,19 @@ private fun QuerySelectionSection(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SupportModeSection(
     onSupportModeSelected: (SupportMode) -> Unit,
     onTimeSlotSelected: (String) -> Unit,
     onLanguageSelected: (String) -> Unit
 ) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf<Long?>(null) }
+    var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
+    var formattedDateTime by remember { mutableStateOf("") }
+
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 8.dp),
         text = "Preferred Support Mode",
@@ -313,11 +331,106 @@ fun SupportModeSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        CustomDropdown(
-            placeHolder = "Available Time Slot",
-            options = listOf("Morning", "Afternoon", "Evening"),
-            onOptionSelected = onTimeSlotSelected
-        )
+        // Display the selected date and time
+        if (selectedDate != null || selectedTime != null) {
+            Text(
+                text = "Selected: ${
+                    if (selectedDate != null) {
+                        val date = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
+                    } else ""
+                } ${
+                    if (selectedTime != null) {
+                        selectedTime!!.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                    } else ""
+                }",
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = SkyBlue,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        // Replace the dropdown with two buttons for date and time
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = { showDatePicker = true },
+                modifier = Modifier
+                    .height(48.dp)
+                    .width(140.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SkyBlue)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange, // Replace with your calendar icon
+                        contentDescription = "Select Date",
+                        tint = Color.White
+                    )
+                    Text("Select Date")
+                }
+            }
+
+            Button(
+                onClick = { showTimePicker = true },
+                modifier = Modifier
+                    .height(48.dp)
+                    .width(140.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SkyBlue)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.clock), // Replace with your clock icon
+                        contentDescription = "Select Time",
+                        tint = Color.White
+                    )
+                    Text("Select Time")
+                }
+            }
+        }
+
+        // Show DatePicker when button is clicked
+        if (showDatePicker) {
+            DatePickerModal(
+                onDateSelected = { dateMillis ->
+                    selectedDate = dateMillis
+                    // Format date time if both date and time are selected
+                    if (selectedDate != null && selectedTime != null) {
+                        val localDate = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val dateTime = LocalDateTime.of(localDate, selectedTime)
+                        formattedDateTime = dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        onTimeSlotSelected(formattedDateTime)
+                    }
+                },
+                onDismiss = { showDatePicker = false }
+            )
+        }
+
+        // Create TimePicker when button is clicked
+        if (showTimePicker) {
+            TimePickerDialog(
+                onTimeSelected = { time ->
+                    selectedTime = time
+                    // Format date time if both date and time are selected
+                    if (selectedDate != null && selectedTime != null) {
+                        val localDate = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val dateTime = LocalDateTime.of(localDate, selectedTime)
+                        formattedDateTime = dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        onTimeSlotSelected(formattedDateTime)
+                    }
+                },
+                onDismiss = { showTimePicker = false }
+            )
+        }
+        TODO("Fix Date and Time Picker UI")
 
         Spacer(modifier = Modifier.height(8.dp))
 
