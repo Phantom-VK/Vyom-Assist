@@ -20,7 +20,7 @@ import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun Navigation(
     navController: NavHostController,
@@ -46,9 +46,7 @@ fun Navigation(
             HomeScreen(navController)
         }
         composable("ticket_screen") {
-            TicketGenerationScreen(ticketViewModel = ticketViewModel,userVM = userVM, navController = navController, onBackClick = {
-                navController.navigateUp()
-            })
+            TicketGenerationScreen(ticketViewModel = ticketViewModel,userVM = userVM, navController = navController)
         }
         composable("register_screen") {
             RegistrationScreen(navController, authVM)

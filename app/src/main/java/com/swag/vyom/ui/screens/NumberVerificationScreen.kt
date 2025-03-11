@@ -56,6 +56,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel, userVM: UserViewModel) {
+
+    //TODO Add Loading Screen
+
     // Get screen dimensions to make UI responsive
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp

@@ -9,11 +9,16 @@ import com.swag.vyom.dataclasses.UserLoginResponse
 import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.dataclasses.UserRegistrationResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
+import com.swag.vyom.dataclasses.FileUploadResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Query
+import java.io.File
 
 interface ApiService {
 
@@ -45,6 +50,13 @@ interface ApiService {
         @Query("mobile_number") mobileNumber: String? = null,
         @Query("aadhaar") aadhaar: String? = null
     ): UserDetailsResponse
+
+
+    @Multipart
+    @POST("user/file_upload.php")
+    suspend fun uploadFile(
+        @Part file: MultipartBody.Part
+    ): FileUploadResponse
 
 
 
