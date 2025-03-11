@@ -10,10 +10,30 @@ data class UserDetailsResponse(
 
 data class UserDetails(
     val id: Int,
-    val mobile_number: String,
+    val mobileNumber: String,
     val aadhaar: String,
-    val account_number: String,
-    val first_name: String,
-    val last_name: String
+    val accountNumber: String,
+    val accountType: AccountType, // Enum for account types
+    val firstName: String,
+    val lastName: String,
+    val email: String?,
+    val address: String?,
+    val cibilScore: Int?,
+    val totalAssets: Double?,
+    val riskProfile: RiskProfile, // Enum for risk profile
+    val lastTransactionDate: String?,
+    val totalTransactionsCount: Int?,
+    val lastTicketId: String?
 )
+
+// Enum for account types
+enum class AccountType {
+    SAVINGS, CURRENT, BUSINESS, FIXED_DEPOSIT, RECURRING_DEPOSIT, UNKNOWN
+}
+
+// Enum for risk profile
+enum class RiskProfile {
+    LOW, MEDIUM, HIGH, UNKNOWN
+}
+
 
