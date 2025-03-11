@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swag.vyom.api.RetrofitClient
 import com.swag.vyom.dataclasses.CheckCustomerResponse
+import com.swag.vyom.dataclasses.UserDetailsResponse
 import com.swag.vyom.dataclasses.UserLoginRequest
 import com.swag.vyom.dataclasses.UserRegistrationRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,6 +93,21 @@ class AuthViewModel : ViewModel() {
                         data = null
                     )
                 )
+            }
+        }
+    }
+
+    fun getUserDetails(
+        mobileNumber: String? = null,
+        aadhaar: String? = null,
+        onResult: (UserDetailsResponse) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.instance.getUserDetails(mobileNumber, aadhaar)
+                onResult(response)
+            } catch (e: Exception) {
+                onResult(UserDetailsResponse(false, "Error: ${e.message}", null))
             }
         }
     }

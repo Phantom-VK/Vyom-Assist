@@ -26,11 +26,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
@@ -42,6 +40,8 @@ fun FaceAuth(navController: NavHostController){
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -115,8 +115,8 @@ fun AuthPart(navController: NavHostController){
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewFaceAuth(){
-    FaceAuth(navController = rememberNavController())
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewFaceAuth(){
+//    FaceAuth(navController = rememberNavController())
+//}

@@ -11,6 +11,7 @@ import com.swag.vyom.ui.navigation.Navigation
 import com.swag.vyom.ui.theme.VyomTheme
 import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
+import com.swag.vyom.viewmodels.UserViewModel
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -23,11 +24,14 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val ticketViewModel = TicketViewModel()
                 val authVM = AuthViewModel()
+                val sharedPreferencesHelper by lazy { SharedPreferencesHelper(this) }
+                val userVM = UserViewModel(sharedPreferencesHelper)
 
               Navigation(
                   navController = navController,
                   ticketViewModel = ticketViewModel,
-                  authVM = authVM
+                  authVM = authVM,
+                  userVM = userVM
 
               )
 

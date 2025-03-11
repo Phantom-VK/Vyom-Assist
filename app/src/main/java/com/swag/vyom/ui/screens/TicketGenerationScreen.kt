@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -33,6 +32,7 @@ import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.ChatbotViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
+import com.swag.vyom.viewmodels.UserViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -41,8 +41,10 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TicketGenerationScreen(
     ticketViewModel: TicketViewModel,
+    userVM: UserViewModel,
     navController: NavController,
     onBackClick: () -> Unit = {}
+
 ) {
     var category by remember { mutableStateOf("") }
     var subCategory by remember { mutableStateOf("") }
@@ -53,7 +55,8 @@ fun TicketGenerationScreen(
     var queryDescription by remember { mutableStateOf("") }
     var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
 
-    val chatvm = ChatbotViewModel()
+    val userDetails by userVM.userDetails.collectAsState()
+
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog){
@@ -98,7 +101,7 @@ fun TicketGenerationScreen(
             Button(
                 onClick = {
                     val ticket = Ticket(
-                        user_id = 1, // Replace with actual user ID
+                        user_id = userDetails?.id ?: 1, // Replace with actual user ID
                         category = category,
                         sub_category = subCategory,
                         urgency_level = urgencyLevel.toString(),

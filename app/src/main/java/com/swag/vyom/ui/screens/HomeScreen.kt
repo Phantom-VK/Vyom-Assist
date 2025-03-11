@@ -278,7 +278,7 @@ fun QuickTask(
                     .weight(1f)
                     .aspectRatio(1f)
             ){
-//                navController.navigate("chatbot")
+                navController.navigate("chatbot_screen")
             }
 
             QuickTaskCard(
@@ -288,7 +288,7 @@ fun QuickTask(
                     .weight(1f)
                     .aspectRatio(1f)
             ){
-                navController.navigate("ticket_screen")
+                navController.navigate("support_screen")
             }
 
             // Add a third empty card with placeholder for future use

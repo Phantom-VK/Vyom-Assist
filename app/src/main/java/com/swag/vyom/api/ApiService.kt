@@ -9,6 +9,7 @@ import com.swag.vyom.dataclasses.UserLoginResponse
 import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.dataclasses.UserRegistrationResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
+import com.swag.vyom.dataclasses.UserDetailsResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -38,6 +39,14 @@ interface ApiService {
         @Query("mobile_number") mobileNumber: String? = null,
         @Query("aadhaar") aadhaar: String? = null
     ): CheckCustomerResponse
+
+    @GET("user/fetch_user_primary_details.php")
+    suspend fun getUserDetails(
+        @Query("mobile_number") mobileNumber: String? = null,
+        @Query("aadhaar") aadhaar: String? = null
+    ): UserDetailsResponse
+
+
 
 
 

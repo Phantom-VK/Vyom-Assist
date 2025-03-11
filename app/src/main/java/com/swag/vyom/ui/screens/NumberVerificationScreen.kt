@@ -1,5 +1,6 @@
 package com.swag.vyom.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,10 +51,11 @@ import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.AuthViewModel
+import com.swag.vyom.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel) {
+fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel, userVM: UserViewModel) {
     // Get screen dimensions to make UI responsive
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
@@ -67,7 +70,7 @@ fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewM
     ) {
         RoundedCornerCard(screenWidth, screenHeight)
         Instructions(screenWidth)
-        InteractionPart(navController, authVM)
+        InteractionPart(navController, authVM, userVM)
     }
 }
 
@@ -155,17 +158,22 @@ fun Instructions(screenWidth: Dp) {
 }
 
 @Composable
-fun InteractionPart(navController: NavHostController, authVM: AuthViewModel) {
+fun InteractionPart(navController: NavHostController, authVM: AuthViewModel, userVM: UserViewModel) {
     var aadharNo by remember { mutableStateOf("") }
     var mobileNo by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+
 
     LaunchedEffect(authVM.customerStatus) {
         authVM.customerStatus.collect { response ->
             response?.let {
                 if (it.success) {
                     if (it.data?.registered == true) {
+                        authVM.getUserDetails(mobileNo, aadharNo){
+                            userVM.saveUserDetails(it.data)
+                        }
                         navController.navigate("face_auth")
                     } else {
                         navController.navigate("register_screen")

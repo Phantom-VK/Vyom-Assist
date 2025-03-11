@@ -6,22 +6,27 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.swag.vyom.ui.screens.ChatScreen
+import com.swag.vyom.ui.screens.CustomerSupportScreen
 import com.swag.vyom.ui.screens.FaceAuth
 import com.swag.vyom.ui.screens.HomeScreen
 import com.swag.vyom.ui.screens.LoginScreen
+import com.swag.vyom.ui.screens.MyTicketsScreen
 import com.swag.vyom.ui.screens.NumberVerificationScreen
 import com.swag.vyom.ui.screens.RegistrationScreen
 import com.swag.vyom.ui.screens.SplashScreen
 import com.swag.vyom.ui.screens.TicketGenerationScreen
 import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
+import com.swag.vyom.viewmodels.UserViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Navigation(
     navController: NavHostController,
     ticketViewModel: TicketViewModel,
-    authVM: AuthViewModel
+    authVM: AuthViewModel,
+    userVM: UserViewModel
 
 ) {
     NavHost(
@@ -32,7 +37,7 @@ fun Navigation(
             SplashScreen(navController)
         }
         composable("customer_verification") {
-            NumberVerificationScreen(navController, authVM)
+            NumberVerificationScreen(navController, authVM, userVM)
         }
         composable("face_auth") {
             FaceAuth(navController)
@@ -41,7 +46,7 @@ fun Navigation(
             HomeScreen(navController)
         }
         composable("ticket_screen") {
-            TicketGenerationScreen(ticketViewModel = ticketViewModel, navController = navController, onBackClick = {
+            TicketGenerationScreen(ticketViewModel = ticketViewModel,userVM = userVM, navController = navController, onBackClick = {
                 navController.navigateUp()
             })
         }
@@ -51,6 +56,23 @@ fun Navigation(
         composable("login_screen"){
             LoginScreen(navController = navController,
                 authVM = authVM)
+        }
+        composable("support_screen"){
+            CustomerSupportScreen(
+                navController = navController
+            ){
+                navController.navigateUp()
+            }
+        }
+        composable("myticket_screen") {
+            MyTicketsScreen(
+                navController
+            )
+        }
+        composable("chatbot_screen") {
+            ChatScreen(){
+                navController.navigateUp()
+            }
         }
 
 
