@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swag.vyom.R
+import com.swag.vyom.ui.components.FaceDetectionApp
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
 
@@ -66,7 +67,7 @@ fun AuthPart(navController: NavHostController){
             color = AppRed,
             shape = RoundedCornerShape(50.dp)
         )) {
-
+            FaceDetectionApp()
         }
 
         Spacer(modifier = Modifier.height(20.dp))
