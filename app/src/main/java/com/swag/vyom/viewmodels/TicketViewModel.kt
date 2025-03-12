@@ -6,18 +6,18 @@ import androidx.lifecycle.viewModelScope
 import com.swag.vyom.api.RetrofitClient
 import com.swag.vyom.dataclasses.Ticket
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import kotlin.coroutines.resume
 
 class TicketViewModel: ViewModel() {
 
     fun createTicket(ticket: Ticket) {
         viewModelScope.launch {
             try {
-
-
                 // Make the API call
                 val response = RetrofitClient.instance.generateTicket(ticket)
 
@@ -33,6 +33,7 @@ class TicketViewModel: ViewModel() {
         }
     }
 
+    // Original callback-based method
     fun uploadFile(
         file: File,
         onCompletion: (String) -> Unit
@@ -49,12 +50,21 @@ class TicketViewModel: ViewModel() {
                     onCompletion(data.file_url)
                 } else {
                     Log.e("TicketViewModel", "Error uploading file: ${response.msg}")
+                    onCompletion("")  // Return empty string on error
                 }
             } catch (e: Exception) {
                 Log.e("TicketViewModel", "Exception: ${e.message} ${e.cause}")
+                onCompletion("")  // Return empty string on exception
             }
         }
     }
 
-
+    // New suspend function that returns a result
+    suspend fun uploadFileCoroutine(file: File): String {
+        return suspendCancellableCoroutine { continuation ->
+            uploadFile(file) { url ->
+                continuation.resume(url)
+            }
+        }
+    }
 }

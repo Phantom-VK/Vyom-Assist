@@ -1,7 +1,9 @@
 package com.swag.vyom.ui.screens
 
+import android.R.attr.enabled
 import android.os.Build
 import android.os.Build.VERSION_CODES.S
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,10 +41,12 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
@@ -62,6 +68,7 @@ import com.swag.vyom.dataclasses.PriorityLevel
 import com.swag.vyom.dataclasses.SupportMode
 import com.swag.vyom.dataclasses.Ticket
 import com.swag.vyom.dataclasses.UrgencyLevel
+import com.swag.vyom.dataclasses.UserDetails
 import com.swag.vyom.ui.components.AudioRecorderDialog
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
@@ -70,14 +77,19 @@ import com.swag.vyom.ui.components.TimePickerDialog
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.viewmodels.CameraViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @RequiresApi(S)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,10 +98,8 @@ fun TicketGenerationScreen(
     ticketViewModel: TicketViewModel,
     userVM: UserViewModel,
     navController: NavController
-
 ) {
-
-    //TODO Add loading screen
+    // State variables
     var category by remember { mutableStateOf("") }
     var subCategory by remember { mutableStateOf("") }
     var urgencyLevel by remember { mutableStateOf(UrgencyLevel.Low) }
@@ -97,44 +107,57 @@ fun TicketGenerationScreen(
     var languagePreference by remember { mutableStateOf("English") }
     var queryDescription by remember { mutableStateOf("") }
     var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
-
     var formattedDateTime by remember { mutableStateOf("") }
-    var uploadedVideoUrl by remember { mutableStateOf("") }
+
     var audioFilePath by remember { mutableStateOf("") }
+    var imagePath by remember { mutableStateOf("") }
+
     var uploadedAudioFileUrl by remember { mutableStateOf("") }
     var uploadedImageUrl by remember { mutableStateOf("") }
 
-    val userDetails by userVM.userDetails.collectAsState()
-
     var showDialog by remember { mutableStateOf(false) }
     var showAudioRecorder by remember { mutableStateOf(false) }
+    var showCameraScreen by remember { mutableStateOf(false) }
 
-    if (showDialog){
+    var isLoading by remember { mutableStateOf(false) }
+
+    val userDetails by userVM.userDetails.collectAsState()
+
+    // Create a CoroutineScope for launching coroutines
+    val coroutineScope = rememberCoroutineScope()
+
+    // Handle dialog and camera screen
+    if (showDialog) {
         CustomDialog(
             title = "Success!",
             message = "Your Ticket has been submitted successfully.",
-            onConfirm = {
-                showDialog = false
-            },
-            onDismiss = {
-                showDialog= false
-            }
+            onConfirm = { showDialog = false },
+            onDismiss = { showDialog = false }
         )
     }
 
-    if(showAudioRecorder){
+    if (showAudioRecorder) {
         AudioRecorderDialog(
             userID = userDetails?.id,
             onDismiss = { showAudioRecorder = false },
-            onSubmit = { fileURL ->
-
-                audioFilePath = fileURL
-                showAudioRecorder = false
-
-            }
+            onSubmit = { fileURL -> audioFilePath = fileURL }
         )
     }
 
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent background
+                .clickable { /* Prevent clicks while loading */ },
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = SkyBlue, // Customize the color
+                modifier = Modifier.size(48.dp)
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -159,67 +182,59 @@ fun TicketGenerationScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
         bottomBar = {
             Button(
                 onClick = {
-                    if (audioFilePath.isNotBlank()) {
-                        ticketViewModel.uploadFile(File(audioFilePath)) { url ->
-                            uploadedAudioFileUrl = url
+                    // Launch a coroutine to handle file uploads and ticket submission
+                    coroutineScope.launch {
+                        isLoading = true // Start loading
 
-                            // Now that the file is uploaded, create the ticket object
-                            val ticket = Ticket(
-                                user_id = userDetails?.id ?: 1,
-                                category = category,
-                                sub_category = subCategory,
-                                urgency_level = urgencyLevel.toString(),
-                                preferred_support_mode = supportMode?.toString() ?: "",
-                                available_timedate = formattedDateTime.ifEmpty {
-                                    LocalDateTime.now().plusDays(1)
-                                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                },
-                                language_preference = languagePreference,
-                                description = queryDescription,
-                                audio_file_link = uploadedAudioFileUrl,
-                                video_file_link = "",
-                                attached_image_link = "",
-                                assigned_department = "",
-                                priority_level = priorityLevel.toString()
+                        try {
+
+                            // Upload files concurrently if they exist
+                            if (audioFilePath.isNotBlank() || imagePath.isNotBlank()) {
+                                val audioUploadJob = if (audioFilePath.isNotBlank()) {
+                                    async { ticketViewModel.uploadFileCoroutine(File(audioFilePath)) }
+                                } else null
+
+                                val imageUploadJob = if (imagePath.isNotBlank()) {
+                                    async { ticketViewModel.uploadFileCoroutine(File(imagePath)) }
+                                } else null
+
+                                // Await the results
+                                audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
+                                imageUploadJob?.let { uploadedImageUrl = it.await() }
+                            }
+
+                            // Now create the ticket with the URLs
+                            handleTicketSubmission(
+                                ticketViewModel,
+                                userDetails,
+                                category,
+                                subCategory,
+                                urgencyLevel,
+                                supportMode,
+                                formattedDateTime,
+                                languagePreference,
+                                queryDescription,
+                                priorityLevel,
+                                uploadedImageUrl = uploadedImageUrl,
+                                uploadedAudioFileUrl = uploadedAudioFileUrl,
+                                navController
                             )
 
-                            // After creating the ticket, upload it
-                            ticketViewModel.createTicket(ticket)
-                            navController.navigate("home_screen")
+                            showDialog = true // Show success dialog
+                        } catch (e: Exception) {
+                            Log.e("Upload", "Error uploading files: ${e.message}")
+                            // You may want to show an error dialog here
+                        } finally {
+                            isLoading = false // Stop loading
                         }
-                    } else {
-                        val ticket = Ticket(
-                            user_id = userDetails?.id ?: 1,
-                            category = category,
-                            sub_category = subCategory,
-                            urgency_level = urgencyLevel.toString(),
-                            preferred_support_mode = supportMode?.toString() ?: "",
-                            available_timedate = formattedDateTime.ifEmpty {
-                                LocalDateTime.now().plusDays(1)
-                                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                            },
-                            language_preference = languagePreference,
-                            description = queryDescription,
-                            audio_file_link = uploadedAudioFileUrl,
-                            video_file_link = "",
-                            attached_image_link = "",
-                            assigned_department = "",
-                            priority_level = priorityLevel.toString()
-                        )
-
-                        ticketViewModel.createTicket(ticket)
-                        navController.navigate("home_screen")
                     }
-                }
-                ,
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
@@ -238,98 +253,75 @@ fun TicketGenerationScreen(
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
-            QuerySelectionSection(
-                onCategorySelected = { category = it },
-                onSubCategorySelected = { subCategory = it },
-                onUrgencyLevelSelected = { urgencyLevel = it },
-                onPriorityLevelSelected = { priorityLevel = it }
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                thickness = 1.dp,
-                color = Color.Black
-            )
-
-            SupportModeSection(
-                onSupportModeSelected = { supportMode = it },
-                onTimeSlotSelected = { formattedDateTime = it },
-                onLanguageSelected = { languagePreference = it }
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                thickness = 1.dp,
-                color = Color.Black
-            )
-
-            Row(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
             ) {
-                AttachmentOptions(
-                    icon = R.drawable.record,
-                    text = "Record Video/Issue"
+                QuerySelectionSection(
+                    onCategorySelected = { category = it },
+                    onSubCategorySelected = { subCategory = it },
+                    onUrgencyLevelSelected = { urgencyLevel = it },
+                    onPriorityLevelSelected = { priorityLevel = it }
                 )
-                AttachmentOptions(
-                    icon = R.drawable.attachment,
-                    text = "Attach Image"
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = Color.Black
                 )
-                AttachmentOptions(
-                    icon = R.drawable.recording_icon,
-                    text = "Record Audio"
-                ){
-                    showAudioRecorder = true
-                }
+
+                SupportModeSection(
+                    onSupportModeSelected = { supportMode = it },
+                    onTimeSlotSelected = { formattedDateTime = it },
+                    onLanguageSelected = { languagePreference = it }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = Color.Black
+                )
+
+                AttachmentOptionsSection(
+                    onRecordVideoImage = { showCameraScreen = true },
+                    onRecordAudio = { showAudioRecorder = true }
+                )
+
+                QueryDescriptionSection(
+                    queryDescription = queryDescription,
+                    onQueryDescriptionChange = { queryDescription = it }
+                )
+
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
-            TextField(
-                value = queryDescription,
-                onValueChange = { queryDescription = it },
-                placeholder = {
-                    Row {
-                        Text("Brief Description", color = Color.Gray)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.Create,
-                            contentDescription = "Edit Description",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(16.dp)
+            if (showCameraScreen) {
+                Dialog(
+                    onDismissRequest = { showCameraScreen = false } // Close the dialog when the user clicks outside
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(500.dp) // Adjust the height as needed
+                            .background(Color.White, RoundedCornerShape(16.dp)) // Add rounded corners
+                    ) {
+                        CameraScreen(
+                            cameraVM = CameraViewModel(),
+                            userID = userDetails?.id ?: 0,
+                            onPhotoTaken = { uri ->
+                                imagePath = uri.path.toString()
+                                showCameraScreen = false // Close the dialog after capturing the photo
+                            }
                         )
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(150.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
-                    .background(Color.White),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Gray,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(80.dp))
+                }
+            }
         }
     }
 }
-
 @Composable
 private fun QuerySelectionSection(
     onCategorySelected: (String) -> Unit,
@@ -373,6 +365,49 @@ private fun QuerySelectionSection(
             onOptionSelected = { onPriorityLevelSelected(PriorityLevel.valueOf(it)) }
         )
     }
+}
+
+// Reusable function for handling ticket submission
+@RequiresApi(Build.VERSION_CODES.O)
+private fun handleTicketSubmission(
+    ticketViewModel: TicketViewModel,
+    userDetails: UserDetails?,
+    category: String,
+    subCategory: String,
+    urgencyLevel: UrgencyLevel,
+    supportMode: SupportMode?,
+    formattedDateTime: String,
+    languagePreference: String,
+    queryDescription: String,
+    priorityLevel: PriorityLevel,
+    uploadedImageUrl: String,
+    uploadedAudioFileUrl: String,
+    navController: NavController
+) {
+
+
+        val ticket = Ticket(
+            user_id = userDetails?.id ?: 1,
+            category = category,
+            sub_category = subCategory,
+            urgency_level = urgencyLevel.toString(),
+            preferred_support_mode = supportMode?.toString() ?: "",
+            available_timedate = formattedDateTime.ifEmpty {
+                LocalDateTime.now().plusDays(1)
+                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            },
+            language_preference = languagePreference,
+            description = queryDescription,
+            audio_file_link = uploadedAudioFileUrl,
+            video_file_link = "",
+            attached_image_link = uploadedImageUrl,
+            assigned_department = "",
+            priority_level = priorityLevel.toString()
+        )
+
+        ticketViewModel.createTicket(ticket)
+        navController.navigate("home_screen")
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -585,7 +620,34 @@ fun SupportModeOption(
         }
     }
 }
-
+@Composable
+private fun AttachmentOptionsSection(
+    onRecordVideoImage: () -> Unit,
+    onRecordAudio: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        AttachmentOptions(
+            icon = R.drawable.record,
+            text = "Record Video/Image",
+            onClick = onRecordVideoImage
+        )
+        AttachmentOptions(
+            icon = R.drawable.attachment,
+            text = "Attach File"
+        )
+        AttachmentOptions(
+            icon = R.drawable.recording_icon,
+            text = "Record Audio",
+            onClick = onRecordAudio
+        )
+    }
+}
 @Composable
 fun AttachmentOptions(
     icon: Int,
@@ -627,6 +689,45 @@ fun AttachmentOptions(
     }
 }
 
+@Composable
+private fun QueryDescriptionSection(
+    queryDescription: String,
+    onQueryDescriptionChange: (String) -> Unit
+) {
+    TextField(
+        value = queryDescription,
+        onValueChange = onQueryDescriptionChange,
+        placeholder = {
+            Row {
+                Text("Brief Description", color = Color.Gray)
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Default.Create,
+                    contentDescription = "Edit Description",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(16.dp))
+
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(150.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, Color.Black, RoundedCornerShape(16.dp))
+            .background(Color.White),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Gray,
+            disabledIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        )
+    )
+}
+
 @RequiresApi(S)
 @Preview(showBackground = true)
 @Composable
@@ -642,3 +743,4 @@ fun PreviewTicketScreen() {
         navController = navController
     )
 }
+

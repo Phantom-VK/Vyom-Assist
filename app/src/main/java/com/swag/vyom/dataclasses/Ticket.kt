@@ -21,7 +21,7 @@ data class Ticket(
     val sub_category: String,
     val urgency_level: String,
     val preferred_support_mode: String,
-    val available_timedate: String, // Changed to String for API request
+    val available_timedate: String,
     val language_preference: String,
     val description: String,
     val audio_file_link: String? = null,
