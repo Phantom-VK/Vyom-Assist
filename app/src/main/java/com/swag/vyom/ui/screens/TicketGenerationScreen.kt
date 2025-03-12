@@ -144,20 +144,10 @@ fun TicketGenerationScreen(
         )
     }
 
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent background
-                .clickable { /* Prevent clicks while loading */ },
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(
-                color = SkyBlue, // Customize the color
-                modifier = Modifier.size(48.dp)
-            )
-        }
-    }
+
+
+
+
 
     Scaffold(
         topBar = {
@@ -208,6 +198,7 @@ fun TicketGenerationScreen(
                                 audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
                                 imageUploadJob?.let { uploadedImageUrl = it.await() }
                             }
+                            showDialog = true
 
                             // Now create the ticket with the URLs
                             handleTicketSubmission(
@@ -226,7 +217,6 @@ fun TicketGenerationScreen(
                                 navController
                             )
 
-                            showDialog = true // Show success dialog
                         } catch (e: Exception) {
                             Log.e("Upload", "Error uploading files: ${e.message}")
                             // You may want to show an error dialog here
@@ -296,6 +286,21 @@ fun TicketGenerationScreen(
                 )
 
                 Spacer(modifier = Modifier.height(80.dp))
+            }
+
+            if(isLoading){
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent background
+                        .clickable { /* Prevent clicks while loading */ },
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = SkyBlue, // Customize the color
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             }
 
             if (showCameraScreen) {

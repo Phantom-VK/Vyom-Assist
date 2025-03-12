@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.swag.vyom.R
@@ -29,58 +30,81 @@ import com.swag.vyom.R
 fun CustomerSupportScreen(
     navController: NavController,
     onBackClick: () -> Unit = {}
-){
+) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "VyomAI",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = Color(0xFF0066CC),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Go back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
+            CustomerSupportTopAppBar(onBackClick = onBackClick)
         }
     ) { paddingValues ->
-        Row(
-            modifier = Modifier.padding(paddingValues)
-                .fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ){
-            QuickTaskCard(
-                iconResId = R.drawable.ic_support,
-                title = "Create Ticket",
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-            ){
-                navController.navigate("ticket_screen")
-            }
+        CustomerSupportContent(
+            paddingValues = paddingValues,
+            navController = navController
+        )
+    }
+}
 
-            QuickTaskCard(
-                iconResId = R.drawable.ic_support,
-                title = "My Tickets",
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-            ){
-                navController.navigate("myticket_screen")
-            }
+@Composable
+private fun CustomerSupportContent(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    navController: NavController
+) {
+    Row(
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxSize()
+            .padding(16.dp), // Add padding for better spacing
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        QuickTaskCard(
+            iconResId = R.drawable.ic_support,
+            title = "Create Ticket",
+            modifier = Modifier
+                .weight(1f)
+                .aspectRatio(1f)
+                .padding(8.dp) // Add padding between cards
+        ) {
+            navController.navigate("ticket_screen")
+        }
+
+        QuickTaskCard(
+            iconResId = R.drawable.ic_support,
+            title = "My Tickets",
+            modifier = Modifier
+                .weight(1f)
+                .aspectRatio(1f)
+                .padding(8.dp) // Add padding between cards
+        ) {
+            navController.navigate("myticket_screen")
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CustomerSupportTopAppBar(
+    onBackClick: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "VyomAI",
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Color(0xFF0066CC),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Go back"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.White
+        )
+    )
 }
