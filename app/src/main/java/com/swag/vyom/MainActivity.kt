@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.arthenica.ffmpegkit.FFmpegKit
 import com.swag.vyom.ui.navigation.Navigation
 import com.swag.vyom.ui.theme.VyomTheme
 import com.swag.vyom.viewmodels.AuthViewModel
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(

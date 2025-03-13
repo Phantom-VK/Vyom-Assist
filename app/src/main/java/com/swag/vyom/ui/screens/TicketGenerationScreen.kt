@@ -1,6 +1,5 @@
 package com.swag.vyom.ui.screens
 
-import android.R.attr.enabled
 import android.os.Build
 import android.os.Build.VERSION_CODES.S
 import android.util.Log
@@ -41,7 +40,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +63,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.SharedPreferencesHelper
-import com.swag.vyom.dataclasses.PriorityLevel
 import com.swag.vyom.dataclasses.SupportMode
 import com.swag.vyom.dataclasses.Ticket
 import com.swag.vyom.dataclasses.UrgencyLevel
@@ -90,8 +87,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 @RequiresApi(S)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,10 +105,12 @@ fun TicketGenerationScreen(
     var formattedDateTime by remember { mutableStateOf("") }
 
     var audioFilePath by remember { mutableStateOf("") }
-    var imagePath by remember { mutableStateOf("") }
 
-    var uploadedAudioFileUrl by remember { mutableStateOf("") }
-    var uploadedImageUrl by remember { mutableStateOf("") }
+
+    var mediaPath by remember { mutableStateOf("") }
+    var isVideoMedia by remember { mutableStateOf(false) }
+
+
 
     var showDialog by remember { mutableStateOf(false) }
     var showAudioRecorder by remember { mutableStateOf(false) }
@@ -189,21 +186,26 @@ fun TicketGenerationScreen(
                         isLoading = true // Start loading
 
                         try {
-
                             // Upload files concurrently if they exist
-                            if (audioFilePath.isNotBlank() || imagePath.isNotBlank()) {
-                                val audioUploadJob = if (audioFilePath.isNotBlank()) {
-                                    async { ticketViewModel.uploadFileCoroutine(File(audioFilePath)) }
-                                } else null
+                            var uploadedMediaUrl = ""
+                            var uploadedAudioFileUrl = ""
 
-                                val imageUploadJob = if (imagePath.isNotBlank()) {
-                                    async { ticketViewModel.uploadFileCoroutine(File(imagePath)) }
-                                } else null
+                            val mediaUploadJob = if (mediaPath.isNotBlank()) {
+                                async { ticketViewModel.uploadFileCoroutine(File(mediaPath), isVideoMedia) }
+                            } else null
 
-                                // Await the results
-                                audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
-                                imageUploadJob?.let { uploadedImageUrl = it.await() }
-                            }
+                            val audioUploadJob = if (audioFilePath.isNotBlank()) {
+                                async { ticketViewModel.uploadFileCoroutine(File(audioFilePath), isVideoMedia) }
+                            } else null
+
+                            // Await the results
+                            mediaUploadJob?.let { uploadedMediaUrl = it.await() }
+                            audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
+
+                            // Assign to the appropriate field based on media type
+                            val uploadedImageUrl = if (!isVideoMedia) uploadedMediaUrl else ""
+                            val uploadedVideoUrl = if (isVideoMedia) uploadedMediaUrl else ""
+
                             showDialog = true
 
                             // Now create the ticket with the URLs
@@ -223,12 +225,10 @@ fun TicketGenerationScreen(
                                 queryDescription,
                                 uploadedImageUrl = uploadedImageUrl,
                                 uploadedAudioFileUrl = uploadedAudioFileUrl,
-                                navController
+                                uploadedVideoUrl = uploadedVideoUrl  // Add this parameter
                             )
-
                         } catch (e: Exception) {
                             Log.e("Upload", "Error uploading files: ${e.message}")
-                            // You may want to show an error dialog here
                         } finally {
                             isLoading = false // Stop loading
                         }
@@ -316,28 +316,30 @@ fun TicketGenerationScreen(
                 }
             }
 
+            // Replace the showCameraScreen Dialog with this
             if (showCameraScreen) {
                 Dialog(
                     onDismissRequest = {
                         showCameraScreen = false
-                    } // Close the dialog when the user clicks outside
+                    }
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(500.dp) // Adjust the height as needed
+                            .height(500.dp)
                             .background(
                                 Color.White,
                                 RoundedCornerShape(16.dp)
-                            ) // Add rounded corners
+                            )
                     ) {
                         CameraScreen(
                             cameraVM = CameraViewModel(),
                             userID = userDetails?.id ?: 0,
-                            onPhotoTaken = { uri ->
-                                imagePath = uri.path.toString()
-                                showCameraScreen =
-                                    false // Close the dialog after capturing the photo
+                            onMediaCaptured = { uri, isVideo ->
+                                mediaPath = uri.path.toString()
+                                isVideoMedia = isVideo
+                                Log.d("VideoDetails", mediaPath)
+                                Log.d("VideoDetails", isVideoMedia.toString())
                             }
                         )
                     }
@@ -534,10 +536,8 @@ private fun handleTicketSubmission(
     queryDescription: String,
     uploadedImageUrl: String,
     uploadedAudioFileUrl: String,
-    navController: NavController
+    uploadedVideoUrl: String,
 ) {
-
-
     val ticket = Ticket(
         user_id = userDetails?.id ?: 1,
         category = category,
@@ -551,14 +551,12 @@ private fun handleTicketSubmission(
         language_preference = languagePreference,
         description = queryDescription,
         audio_file_link = uploadedAudioFileUrl,
-        video_file_link = "",
+        video_file_link = uploadedVideoUrl,  // Update to use the new variable
         attached_image_link = uploadedImageUrl,
         assigned_department = ""
     )
 
     ticketViewModel.createTicket(ticket)
-
-
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

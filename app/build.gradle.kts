@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -38,6 +40,8 @@ android {
         compose = true
     }
 }
+
+
 
 dependencies {
 
@@ -101,6 +105,8 @@ dependencies {
     implementation("androidx.camera:camera-extensions:${camerax_version}")
 
     implementation ("com.google.mlkit:face-detection:16.1.7")
+
+    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
 
 
 
