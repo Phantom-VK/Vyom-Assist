@@ -57,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -77,6 +78,7 @@ import com.swag.vyom.ui.components.TimePickerDialog
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.utils.calculateUrgencyLevel
 import com.swag.vyom.viewmodels.CameraViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
@@ -102,11 +104,9 @@ fun TicketGenerationScreen(
     // State variables
     var category by remember { mutableStateOf("") }
     var subCategory by remember { mutableStateOf("") }
-    var urgencyLevel by remember { mutableStateOf(UrgencyLevel.Low) }
     var supportMode by remember { mutableStateOf<SupportMode?>(null) }
     var languagePreference by remember { mutableStateOf("English") }
     var queryDescription by remember { mutableStateOf("") }
-    var priorityLevel by remember { mutableStateOf(PriorityLevel.Normal) }
     var formattedDateTime by remember { mutableStateOf("") }
 
     var audioFilePath by remember { mutableStateOf("") }
@@ -131,8 +131,14 @@ fun TicketGenerationScreen(
         CustomDialog(
             title = "Success!",
             message = "Your Ticket has been submitted successfully.",
-            onConfirm = { showDialog = false },
-            onDismiss = { showDialog = false }
+            onConfirm = {
+                showDialog = false
+                navController.navigate("home_screen")
+            },
+            onDismiss = {
+                showDialog = false
+                navController.navigate("home_screen")
+            }
         )
     }
 
@@ -206,12 +212,15 @@ fun TicketGenerationScreen(
                                 userDetails,
                                 category,
                                 subCategory,
-                                urgencyLevel,
+                                urgencyLevel = calculateUrgencyLevel(
+                                    category,
+                                    subCategory,
+                                    formattedDateTime
+                                ),
                                 supportMode,
                                 formattedDateTime,
                                 languagePreference,
                                 queryDescription,
-                                priorityLevel,
                                 uploadedImageUrl = uploadedImageUrl,
                                 uploadedAudioFileUrl = uploadedAudioFileUrl,
                                 navController
@@ -251,10 +260,14 @@ fun TicketGenerationScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 QuerySelectionSection(
-                    onCategorySelected = { category = it },
-                    onSubCategorySelected = { subCategory = it },
-                    onUrgencyLevelSelected = { urgencyLevel = it },
-                    onPriorityLevelSelected = { priorityLevel = it }
+                    onCategorySelected = {
+                        category = it
+                    },
+                    onSubCategorySelected = { mainCategory, selectedSubCategory ->
+
+                        subCategory = selectedSubCategory
+
+                    }
                 )
 
                 HorizontalDivider(
@@ -288,7 +301,7 @@ fun TicketGenerationScreen(
                 Spacer(modifier = Modifier.height(80.dp))
             }
 
-            if(isLoading){
+            if (isLoading) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -305,20 +318,26 @@ fun TicketGenerationScreen(
 
             if (showCameraScreen) {
                 Dialog(
-                    onDismissRequest = { showCameraScreen = false } // Close the dialog when the user clicks outside
+                    onDismissRequest = {
+                        showCameraScreen = false
+                    } // Close the dialog when the user clicks outside
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(500.dp) // Adjust the height as needed
-                            .background(Color.White, RoundedCornerShape(16.dp)) // Add rounded corners
+                            .background(
+                                Color.White,
+                                RoundedCornerShape(16.dp)
+                            ) // Add rounded corners
                     ) {
                         CameraScreen(
                             cameraVM = CameraViewModel(),
                             userID = userDetails?.id ?: 0,
                             onPhotoTaken = { uri ->
                                 imagePath = uri.path.toString()
-                                showCameraScreen = false // Close the dialog after capturing the photo
+                                showCameraScreen =
+                                    false // Close the dialog after capturing the photo
                             }
                         )
                     }
@@ -327,13 +346,15 @@ fun TicketGenerationScreen(
         }
     }
 }
+
 @Composable
 private fun QuerySelectionSection(
     onCategorySelected: (String) -> Unit,
-    onSubCategorySelected: (String) -> Unit,
-    onUrgencyLevelSelected: (UrgencyLevel) -> Unit,
-    onPriorityLevelSelected: (PriorityLevel) -> Unit
+    onSubCategorySelected: (String, String) -> Unit
 ) {
+    // State to track the selected category
+    var selectedCategory by remember { mutableStateOf("") }
+
     Text(
         modifier = Modifier.padding(start = 16.dp, top = 20.dp),
         text = "Query Selection",
@@ -346,29 +367,156 @@ private fun QuerySelectionSection(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // Main categories dropdown with bank-specific categories
+        val mainCategories = listOf(
+            "Account Services",
+            "Loans & Credit",
+            "Digital Banking",
+            "Card Services",
+            "Payments & Transfers",
+            "Investment & Wealth",
+            "Customer Support",
+            "IT Support",
+            "Finance",
+            "HR",
+            "Branch Operations"
+        )
+
         CustomDropdown(
             placeHolder = "Category",
-            options = listOf("IT Support", "Finance", "HR", "Sales"),
-            onOptionSelected = onCategorySelected
+            options = mainCategories,
+            onOptionSelected = { category ->
+                selectedCategory = category
+                onCategorySelected(category)
+            }
         )
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Subcategories that change based on selected main category
+        val subCategories = when (selectedCategory) {
+            "Account Services" -> listOf(
+                "Account Opening",
+                "Account Closure",
+                "Balance Inquiry",
+                "Statement Request",
+                "KYC Update",
+                "Nominee Registration",
+                "Cheque Book Request"
+            )
+
+            "Loans & Credit" -> listOf(
+                "Personal Loan",
+                "Home Loan",
+                "Car Loan",
+                "Education Loan",
+                "Business Loan",
+                "Loan Statement",
+                "EMI Inquiry",
+                "Interest Rate Query"
+            )
+
+            "Digital Banking" -> listOf(
+                "Mobile Banking Issues",
+                "Internet Banking Access",
+                "UPI Problems",
+                "Password Reset",
+                "Failed Transactions",
+                "App Installation",
+                "Security Concerns"
+            )
+
+            "Card Services" -> listOf(
+                "Credit Card Application",
+                "Debit Card Issues",
+                "Card Activation",
+                "Card Blocking",
+                "PIN Generation",
+                "Transaction Dispute",
+                "Reward Points"
+            )
+
+            "Payments & Transfers" -> listOf(
+                "NEFT Transfer",
+                "RTGS Payment",
+                "IMPS Issues",
+                "International Transfer",
+                "Recurring Payments",
+                "Bill Payments",
+                "Standing Instructions"
+            )
+
+            "Investment & Wealth" -> listOf(
+                "Fixed Deposit",
+                "Recurring Deposit",
+                "Mutual Funds",
+                "Insurance Products",
+                "Tax-Saving Schemes",
+                "Portfolio Review",
+                "Investment Advisory"
+            )
+
+            "Customer Support" -> listOf(
+                "Complaints",
+                "Feedback",
+                "Service Quality",
+                "Branch Information",
+                "Document Collection",
+                "Service Charges Query"
+            )
+
+            "IT Support" -> listOf(
+                "Technical Issue",
+                "Software Request",
+                "Access Rights",
+                "Hardware Problem",
+                "Network Connectivity",
+                "System Outage"
+            )
+
+            "Finance" -> listOf(
+                "Salary Processing",
+                "Reimbursement",
+                "Budget Allocation",
+                "Expense Tracking",
+                "Financial Reporting",
+                "Audit Support"
+            )
+
+            "HR" -> listOf(
+                "Employee Onboarding",
+                "Leave Management",
+                "Performance Review",
+                "Training Request",
+                "Benefits Inquiry",
+                "ID Card Issue"
+            )
+
+            "Branch Operations" -> listOf(
+                "Cash Management",
+                "Vault Operations",
+                "Teller Support",
+                "Queue Management",
+                "Branch Security",
+                "Document Processing"
+            )
+
+            else -> listOf(
+                "Select a category first"
+            )
+        }
+
         CustomDropdown(
             placeHolder = "Sub Category",
-            options = listOf("Technical Issue", "Software Request", "Access Rights"),
-            onOptionSelected = onSubCategorySelected
+            options = subCategories,
+            onOptionSelected = { subCategory ->
+                onSubCategorySelected(selectedCategory, subCategory)
+            }
         )
+
         Spacer(modifier = Modifier.height(8.dp))
-        CustomDropdown(
-            placeHolder = "Urgency Level",
-            options = UrgencyLevel.entries.map { it.toString() },
-            onOptionSelected = { onUrgencyLevelSelected(UrgencyLevel.valueOf(it)) }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        CustomDropdown(
-            placeHolder = "Priority Level",
-            options = PriorityLevel.entries.map { it.toString() },
-            onOptionSelected = { onPriorityLevelSelected(PriorityLevel.valueOf(it)) }
-        )
+
+
     }
 }
 
@@ -384,34 +532,32 @@ private fun handleTicketSubmission(
     formattedDateTime: String,
     languagePreference: String,
     queryDescription: String,
-    priorityLevel: PriorityLevel,
     uploadedImageUrl: String,
     uploadedAudioFileUrl: String,
     navController: NavController
 ) {
 
 
-        val ticket = Ticket(
-            user_id = userDetails?.id ?: 1,
-            category = category,
-            sub_category = subCategory,
-            urgency_level = urgencyLevel.toString(),
-            preferred_support_mode = supportMode?.toString() ?: "",
-            available_timedate = formattedDateTime.ifEmpty {
-                LocalDateTime.now().plusDays(1)
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            },
-            language_preference = languagePreference,
-            description = queryDescription,
-            audio_file_link = uploadedAudioFileUrl,
-            video_file_link = "",
-            attached_image_link = uploadedImageUrl,
-            assigned_department = "",
-            priority_level = priorityLevel.toString()
-        )
+    val ticket = Ticket(
+        user_id = userDetails?.id ?: 1,
+        category = category,
+        sub_category = subCategory,
+        urgency_level = urgencyLevel.toString(),
+        preferred_support_mode = supportMode?.toString() ?: "",
+        available_timedate = formattedDateTime.ifEmpty {
+            LocalDateTime.now().plusDays(1)
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        },
+        language_preference = languagePreference,
+        description = queryDescription,
+        audio_file_link = uploadedAudioFileUrl,
+        video_file_link = "",
+        attached_image_link = uploadedImageUrl,
+        assigned_department = ""
+    )
 
-        ticketViewModel.createTicket(ticket)
-        navController.navigate("home_screen")
+    ticketViewModel.createTicket(ticket)
+
 
 }
 
@@ -464,14 +610,16 @@ fun SupportModeSection(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Display the selected date and time
         if (selectedDate != null || selectedTime != null) {
             Text(
                 text = "Selected: ${
                     if (selectedDate != null) {
-                        val date = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val date =
+                            Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
                     } else ""
                 } ${
@@ -539,7 +687,9 @@ fun SupportModeSection(
                     selectedDate = dateMillis
                     // Format date time if both date and time are selected
                     if (selectedDate != null && selectedTime != null) {
-                        val localDate = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val localDate =
+                            Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         val dateTime = LocalDateTime.of(localDate, selectedTime)
                         formattedDateTime = dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         onTimeSlotSelected(formattedDateTime)
@@ -554,9 +704,10 @@ fun SupportModeSection(
             TimePickerDialog(
                 onTimeSelected = { time ->
                     selectedTime = time
-                    // Format date time if both date and time are selected
                     if (selectedDate != null && selectedTime != null) {
-                        val localDate = Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val localDate =
+                            Instant.ofEpochMilli(selectedDate!!).atZone(ZoneId.systemDefault())
+                                .toLocalDate()
                         val dateTime = LocalDateTime.of(localDate, selectedTime)
                         formattedDateTime = dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         onTimeSlotSelected(formattedDateTime)
@@ -565,9 +716,8 @@ fun SupportModeSection(
                 onDismiss = { showTimePicker = false }
             )
         }
-//        TODO("Fix Date and Time Picker UI")
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(15.dp))
 
         CustomDropdown(
             placeHolder = "Language Preference",
@@ -625,6 +775,7 @@ fun SupportModeOption(
         }
     }
 }
+
 @Composable
 private fun AttachmentOptionsSection(
     onRecordVideoImage: () -> Unit,
@@ -639,7 +790,8 @@ private fun AttachmentOptionsSection(
     ) {
         AttachmentOptions(
             icon = R.drawable.record,
-            text = "Record Video/Image",
+            textSize = 12.sp,
+            text = "Capture Video/Image",
             onClick = onRecordVideoImage
         )
         AttachmentOptions(
@@ -653,10 +805,12 @@ private fun AttachmentOptionsSection(
         )
     }
 }
+
 @Composable
 fun AttachmentOptions(
     icon: Int,
     text: String,
+    textSize: TextUnit = 14.sp,
     onClick: () -> Unit = {}
 ) {
     Box(
@@ -669,7 +823,7 @@ fun AttachmentOptions(
                 shape = RoundedCornerShape(10.dp)
             )
             .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick )
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier
@@ -686,7 +840,7 @@ fun AttachmentOptions(
 
             Text(
                 text = text,
-                fontSize = 16.sp,
+                fontSize = textSize,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center
             )
@@ -710,7 +864,8 @@ private fun QueryDescriptionSection(
                     imageVector = Icons.Default.Create,
                     contentDescription = "Edit Description",
                     tint = Color.Gray,
-                    modifier = Modifier.size(16.dp))
+                    modifier = Modifier.size(16.dp)
+                )
 
             }
         },
@@ -739,8 +894,8 @@ private fun QueryDescriptionSection(
 fun PreviewTicketScreen() {
     val context = LocalContext.current
     val ticketViewModel = TicketViewModel()
-     val sharedPreferencesHelper by lazy { SharedPreferencesHelper(context) }
-     val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
+    val sharedPreferencesHelper by lazy { SharedPreferencesHelper(context) }
+    val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
     val navController = rememberNavController()
     TicketGenerationScreen(
         ticketViewModel = ticketViewModel,

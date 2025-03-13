@@ -7,26 +7,11 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -34,39 +19,9 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 
-@Composable
-fun FaceDetectionApp(modifier: Modifier = Modifier) {
-    var isRightChecked by remember { mutableStateOf(false) }
-    var isLeftChecked by remember { mutableStateOf(false) }
-
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Rotate your head to check the boxes", fontSize = androidx.compose.ui.unit.TextUnit.Unspecified)
-
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(checked = isLeftChecked, onCheckedChange = {})
-                Text("Turn Left")
-                Spacer(modifier = Modifier.width(32.dp))
-                Checkbox(checked = isRightChecked, onCheckedChange = {})
-                Text("Turn Right")
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            CameraPreview { left, right ->
-                isLeftChecked = left
-                isRightChecked = right
-            }
-        }
-    }
-}
-
 
 @Composable
-fun CameraPreview(onHeadTurn: (Boolean, Boolean) -> Unit) {
+fun FaceDetectionCameraPreview(onFaceDetectionResult: (Boolean, Boolean, Boolean) -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
@@ -77,9 +32,8 @@ fun CameraPreview(onHeadTurn: (Boolean, Boolean) -> Unit) {
                 scaleType = PreviewView.ScaleType.FILL_CENTER
             }
         },
-        modifier = Modifier.size(300.dp)
+        modifier = Modifier.fillMaxSize()
     ) { previewView ->
-
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
             val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
@@ -92,24 +46,35 @@ fun CameraPreview(onHeadTurn: (Boolean, Boolean) -> Unit) {
                 .build()
                 .also {
                     it.setAnalyzer(ContextCompat.getMainExecutor(context)) { imageProxy ->
-                        processImage(imageProxy, onHeadTurn)
+                        processImageForFaceDetection(imageProxy, onFaceDetectionResult)
                     }
                 }
 
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                preview,
-                imageAnalyzer
-            )
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                    imageAnalyzer
+                )
+            } catch (e: Exception) {
+                // Handle any errors
+            }
         }, ContextCompat.getMainExecutor(context))
     }
 }
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
-fun processImage(imageProxy: ImageProxy, onHeadTurn: (Boolean, Boolean) -> Unit) {
-    val mediaImage = imageProxy.image ?: return
+fun processImageForFaceDetection(
+    imageProxy: ImageProxy,
+    onFaceDetectionResult: (Boolean, Boolean, Boolean) -> Unit
+) {
+    val mediaImage = imageProxy.image ?: run {
+        imageProxy.close()
+        return
+    }
+
     val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
 
     val options = FaceDetectorOptions.Builder()
@@ -122,14 +87,25 @@ fun processImage(imageProxy: ImageProxy, onHeadTurn: (Boolean, Boolean) -> Unit)
     val detector = FaceDetection.getClient(options)
     detector.process(image)
         .addOnSuccessListener { faces ->
-            for (face in faces) {
+            if (faces.isNotEmpty()) {
+                val face = faces[0]
                 val headEulerAngleY = face.headEulerAngleY
 
                 val leftTurn = headEulerAngleY < -15
                 val rightTurn = headEulerAngleY > 15
 
-                onHeadTurn(leftTurn, rightTurn)
+                // Return face detected and turn states
+                onFaceDetectionResult(true, leftTurn, rightTurn)
+            } else {
+                // No face detected
+                onFaceDetectionResult(false, false, false)
             }
         }
-        .addOnCompleteListener { imageProxy.close() }
+        .addOnFailureListener {
+            // Handle failure
+            onFaceDetectionResult(false, false, false)
+        }
+        .addOnCompleteListener {
+            imageProxy.close()
+        }
 }

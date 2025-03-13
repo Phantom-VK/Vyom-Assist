@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -20,54 +22,54 @@ import androidx.navigation.NavController
 import com.swag.vyom.dataclasses.SupportTicket
 import com.swag.vyom.ui.components.SupportTicketItem
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyTicketsScreen(
-    navController: NavController
-){
-
-//    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = { Text(text = "My Tickets") }
-//            )
-//        },
-//        floatingActionButton = {
-//            FloatingActionButton(
-//                onClick = { /* Handle FAB click (e.g., navigate to create ticket) */ }
-//            ) {
-//                Icon(Icons.Default.Add, contentDescription = "Add Ticket")
-//            }
-//        }
-//    ) { innerPadding ->
-//
-////        LazyColumn(
-////            modifier = Modifier.padding(innerPadding)
-////        ) {
-////                SupportTicketItem(
-////                    ticketId = ticket.ticketId,
-////                    dateTime = ticket.dateTime,
-////                    category = ticket.category,
-////                    supportMode = ticket.supportMode,
-////                    status = ticket.status,
-////                    subCategory = ticket.subCategory,
-////                    urgencyLevel = ticket.urgencyLevel,
-////                    onContactSupport = { /* Handle contact support action */ }
-////                )
-////                Spacer(modifier = Modifier.height(8.dp))
-////
-////
-//
-//    }
-    Column(modifier = Modifier.padding(16.dp)) {
-        SupportTicketItem(
-            ticketId = "1414",
-            dateTime = "10:25:01",
-            category = "Loan",
-            supportMode = "Video",
-            status = "Active",
-            subCategory = "Loan",
-            urgencyLevel = "Low",
-            onContactSupport = { /* Handle contact support action */ }
-        )
+    navController: NavController,
+    tickets: List<SupportTicket> = emptyList<SupportTicket>()
+) {
+    //TODO Implement Fetch TIckets and pass ticket list
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "My Tickets") }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /* Navigate to create ticket screen */ }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Ticket")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (tickets.isEmpty()) {
+                Text(
+                    text = "No tickets found.",
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(tickets) { ticket ->
+                        SupportTicketItem(
+                            ticketId = ticket.ticketId.toString(),
+                            dateTime = ticket.dateTime,
+                            category = ticket.category,
+                            supportMode = ticket.supportMode,
+                            status = ticket.status,
+                            subCategory = ticket.subCategory,
+                            urgencyLevel = ticket.urgencyLevel,
+                            onContactSupport = { /* Handle contact support action */ }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+            }
+        }
     }
 }

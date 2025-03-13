@@ -12,7 +12,7 @@ enum class SupportMode {
 }
 
 enum class PriorityLevel {
-    Normal, High, VIP
+    Normal, High, VIP, Low
 }
 
 data class Ticket(
@@ -28,5 +28,17 @@ data class Ticket(
     val video_file_link: String? = null,
     val attached_image_link: String? = null,
     val assigned_department: String? = null,
-    val priority_level: String? = null
+    val priority_level: String = ""
+)
+
+
+
+enum class CustomerSegment {
+    PREMIUM, BUSINESS, REGULAR, SENIOR, NEW
+}
+
+data class CustomerHistory(
+    val customerSegment: CustomerSegment,
+    val recentTicketsCount: Int = 0,
+    val hasUnresolvedTickets: Boolean = false
 )
