@@ -52,7 +52,7 @@ fun Navigation(
             TicketGenerationScreen(ticketViewModel = ticketViewModel,userVM = userVM, navController = navController)
         }
         composable("register_screen") {
-            RegistrationScreen(navController, authVM)
+            RegistrationScreen(navController, authVM, preferencesHelper, ticketVM = ticketViewModel)
         }
         composable("login_screen"){
             LoginScreen(navController = navController,

@@ -1,5 +1,6 @@
 package com.swag.vyom.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,7 +54,11 @@ import com.swag.vyom.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun NumberVerificationScreen(navController: NavHostController, authVM: AuthViewModel, userVM: UserViewModel) {
+fun NumberVerificationScreen(
+    navController: NavHostController,
+    authVM: AuthViewModel,
+    userVM: UserViewModel
+) {
 
     //TODO Add Loading Screen
 
@@ -160,12 +164,15 @@ fun Instructions(screenWidth: Dp) {
 }
 
 @Composable
-fun InteractionPart(navController: NavHostController, authVM: AuthViewModel, userVM: UserViewModel) {
+fun InteractionPart(
+    navController: NavHostController,
+    authVM: AuthViewModel,
+    userVM: UserViewModel
+) {
     var aadharNo by remember { mutableStateOf("") }
     var mobileNo by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
 
 
 
@@ -173,8 +180,13 @@ fun InteractionPart(navController: NavHostController, authVM: AuthViewModel, use
         authVM.customerStatus.collect { response ->
             response?.let {
                 if (it.success) {
+                    Log.d("AuthViewModel", "Customer Status: ${it.data?.id}")
+                    userVM.savePrimaryUserDetails(
+                        aadhaar = (if (aadharNo.isNotEmpty()) aadharNo else it.data?.aadhaar).toString(),
+                        mobile =(if(mobileNo.isNotEmpty()) mobileNo else it.data?.mobile_number.toString()),
+                        id = it.data?.id
+                    )
                     if (it.data?.registered == true) {
-                        userVM.saveAadhaarOrMobile(aadhaar = aadharNo, mobile = mobileNo)
 
                         navController.navigate("face_auth")
                     } else {
@@ -357,7 +369,6 @@ fun CustomerCareInfo() {
         }
     }
 }
-
 
 
 //@Preview(showBackground = true)

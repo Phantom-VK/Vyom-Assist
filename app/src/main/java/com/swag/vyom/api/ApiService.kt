@@ -61,7 +61,7 @@ interface ApiService {
     ): FileUploadResponse
 
     @Multipart
-    @POST("user/upload_user_image.php")
+    @POST("user/upload_faceimg.php")
     suspend fun uploadUserImage(
         @Part("aadhaar") aadhaar: String,
         @Part file: MultipartBody.Part

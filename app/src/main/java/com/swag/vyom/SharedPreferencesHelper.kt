@@ -30,6 +30,16 @@ class SharedPreferencesHelper(context: Context) {
         }
 
     }
+    fun saveid(id: Int) {
+        sharedPreferences.edit {
+            putInt("id", id)
+        }
+
+    }
+    fun getid(): Int? {
+        val id = sharedPreferences.getInt("id", 0)
+        return if(id != 0) id else null
+    }
 
     // Save UserDetails to SharedPreferences
     fun saveUserDetails(userDetails: UserDetails?) {
@@ -86,7 +96,7 @@ class SharedPreferencesHelper(context: Context) {
                 "Fixed Deposit" -> AccountType.FIXED_DEPOSIT
                 else -> AccountType.UNKNOWN
             },
-            email = sharedPreferences.getString("email", null),
+            email = sharedPreferences.getString("email", null).toString(),
             address = sharedPreferences.getString("address", null),
             cibil_score = sharedPreferences.getString("cibil_score", null)?.toIntOrNull(),
             total_assets = sharedPreferences.getString("total_assets", null)?.toDoubleOrNull(),

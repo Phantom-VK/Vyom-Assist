@@ -31,7 +31,7 @@ class AuthViewModel : ViewModel() {
                 val response = RetrofitClient.instance.register(userRegistrationRequest)
                 _registrationStatus.emit(response.success)
                 if (response.success) {
-                    Log.d("AuthViewModel", "User registered successfully: ${response.data?.id}")
+                    Log.d("AuthViewModel", "User registered successfully: ${response.data.id}")
                 } else {
                     Log.e("AuthViewModel", "Registration failed: ${response.msg}")
                 }
@@ -75,6 +75,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.instance.checkCustomer(mobileNumber, aadhaar)
+                Log.d("AuthViewModel", "User's data in checkcustomer function ${response.data}")
                 _customerStatus.emit(response)
 
                 if (response.success) {

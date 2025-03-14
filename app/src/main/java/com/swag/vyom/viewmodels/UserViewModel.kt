@@ -28,15 +28,20 @@ class UserViewModel (private val sharedPreferencesHelper: SharedPreferencesHelpe
         }
     }
 
-    fun saveAadhaarOrMobile(aadhaar : String = "", mobile : String = ""){
+    fun savePrimaryUserDetails(aadhaar: String = "", mobile: String = "", id: Int?){
         if(aadhaar.isNotEmpty()){
             viewModelScope.launch {
                 sharedPreferencesHelper.saveaadhaar(aadhaar)
             }
-        }else if(mobile.isNotEmpty()){
+        }
+        if(mobile.isNotEmpty()){
             viewModelScope.launch {
                 sharedPreferencesHelper.savemobile(mobile)
             }
+        }
+        if(id != null){
+                sharedPreferencesHelper.saveid(id)
+
         }
     }
 

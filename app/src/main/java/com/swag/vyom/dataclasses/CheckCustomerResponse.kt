@@ -9,5 +9,7 @@ data class CheckCustomerResponse(
 data class CustomerData(
     val customer: Boolean,
     val registered: Boolean,
+    val aadhaar:String,
+    val mobile_number:String,
     val id: Int? = null
 )

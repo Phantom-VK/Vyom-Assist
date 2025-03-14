@@ -1,6 +1,7 @@
 package com.swag.vyom.dataclasses
 
 data class UserRegistrationRequest(
+    val id:Int?,
     val mobile_number: String,
     val aadhaar: String,
     val account_number: String,
