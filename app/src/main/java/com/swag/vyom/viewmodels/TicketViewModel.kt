@@ -15,6 +15,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlin.coroutines.resume
@@ -35,6 +36,35 @@ class TicketViewModel: ViewModel() {
                 }
             } catch (e: Exception) {
                 Log.e("TicketViewModel", "Exception: ${e.message }\n${e.cause}")
+            }
+        }
+    }
+
+    fun uploadUserImage(
+        aadhaar: String,
+        file: File,
+        onCompletion: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                // Prepare Aadhaar number as a RequestBody
+
+                // Prepare file for upload
+                val requestFile = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                val multipartBody = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+                // Upload the file
+                val response = RetrofitClient.instance.uploadUserImage(aadhaar, multipartBody)
+                if (response.success) {
+                    Log.d("UserViewModel", "File Uploaded Successfully: ${response.file_path}")
+                    onCompletion(response.file_path ?: "")
+                } else {
+                    Log.e("UserViewModel", "Error uploading file: ${response.msg}")
+                    onCompletion("")  // Return empty string on error
+                }
+            } catch (e: Exception) {
+                Log.e("UserViewModel", "Exception: ${e.message} ${e.cause}")
+                onCompletion("")  // Return empty string on exception
             }
         }
     }

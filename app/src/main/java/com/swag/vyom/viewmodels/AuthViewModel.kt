@@ -1,8 +1,10 @@
 package com.swag.vyom.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.api.RetrofitClient
 import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
@@ -97,18 +99,24 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun getUserDetails(
+    suspend fun getUserDetails(
         mobileNumber: String? = null,
         aadhaar: String? = null,
-        onResult: (UserDetailsResponse) -> Unit
+        onResponse : (UserDetailsResponse) -> Unit
     ) {
-        viewModelScope.launch {
             try {
+                Log.d("AuthViewModel", "Inside authvm")
                 val response = RetrofitClient.instance.getUserDetails(mobileNumber, aadhaar)
-                onResult(response)
+
+                onResponse(response)
+
+                Log.d("AuthViewModel", "Saved data")
+
+
             } catch (e: Exception) {
-                onResult(UserDetailsResponse(false, "Error: ${e.message}", null))
+
+                Log.d("AuthViewModel", "Error fetching details ${e.localizedMessage}")
             }
-        }
+
     }
 }

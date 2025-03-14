@@ -11,7 +11,9 @@ import com.swag.vyom.dataclasses.UserRegistrationResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
+import com.swag.vyom.dataclasses.UserImageUploadResponse
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -57,6 +59,13 @@ interface ApiService {
     suspend fun uploadFile(
         @Part file: MultipartBody.Part
     ): FileUploadResponse
+
+    @Multipart
+    @POST("user/upload_user_image.php")
+    suspend fun uploadUserImage(
+        @Part("aadhaar") aadhaar: String,
+        @Part file: MultipartBody.Part
+    ): UserImageUploadResponse
 
 
 

@@ -3,9 +3,11 @@ package com.swag.vyom.ui.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.screens.ChatScreen
 import com.swag.vyom.ui.screens.CustomerSupportScreen
 import com.swag.vyom.ui.screens.FaceAuth
@@ -26,7 +28,8 @@ fun Navigation(
     navController: NavHostController,
     ticketViewModel: TicketViewModel,
     authVM: AuthViewModel,
-    userVM: UserViewModel
+    userVM: UserViewModel,
+    preferencesHelper: SharedPreferencesHelper
 
 ) {
     NavHost(
@@ -40,10 +43,10 @@ fun Navigation(
             NumberVerificationScreen(navController, authVM, userVM)
         }
         composable("face_auth") {
-            FaceAuth(navController)
+            FaceAuth(navController, userVM)
         }
         composable("home_screen") {
-            HomeScreen(navController)
+            HomeScreen(navController, userVM = userVM, authVM = authVM, preferencesHelper = preferencesHelper )
         }
         composable("ticket_screen") {
             TicketGenerationScreen(ticketViewModel = ticketViewModel,userVM = userVM, navController = navController)

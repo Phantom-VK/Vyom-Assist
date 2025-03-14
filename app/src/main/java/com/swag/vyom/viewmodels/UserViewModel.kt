@@ -1,5 +1,6 @@
 package com.swag.vyom.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swag.vyom.SharedPreferencesHelper
@@ -20,8 +21,22 @@ class UserViewModel (private val sharedPreferencesHelper: SharedPreferencesHelpe
             if (userDetails != null) {
                 sharedPreferencesHelper.saveUserDetails(userDetails)
                 _userDetails.value = userDetails
+            }else{
+                Log.d("Userdetails", "saveUserDetails: User Details is null")
             }
             //TODO: Handle null case
+        }
+    }
+
+    fun saveAadhaarOrMobile(aadhaar : String = "", mobile : String = ""){
+        if(aadhaar.isNotEmpty()){
+            viewModelScope.launch {
+                sharedPreferencesHelper.saveaadhaar(aadhaar)
+            }
+        }else if(mobile.isNotEmpty()){
+            viewModelScope.launch {
+                sharedPreferencesHelper.savemobile(mobile)
+            }
         }
     }
 

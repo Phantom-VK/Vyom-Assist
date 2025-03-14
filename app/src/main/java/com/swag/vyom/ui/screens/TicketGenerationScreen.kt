@@ -70,6 +70,7 @@ import com.swag.vyom.dataclasses.UserDetails
 import com.swag.vyom.ui.components.AudioRecorderDialog
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
+import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.components.DatePickerModal
 import com.swag.vyom.ui.components.FilePickerDialog
 import com.swag.vyom.ui.components.TimePickerDialog
@@ -337,18 +338,7 @@ fun TicketGenerationScreen(
             }
 
             if (isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent background
-                        .clickable { /* Prevent clicks while loading */ },
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = SkyBlue, // Customize the color
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
+                CustomLoadingScreen()
             }
 
             // Replace the showCameraScreen Dialog with this

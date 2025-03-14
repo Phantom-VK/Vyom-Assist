@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                   navController = navController,
                   ticketViewModel = ticketViewModel,
                   authVM = authVM,
-                  userVM = userVM
+                  userVM = userVM,
+                  preferencesHelper = sharedPreferencesHelper
 
               )
 

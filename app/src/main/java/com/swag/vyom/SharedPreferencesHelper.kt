@@ -1,6 +1,7 @@
 package com.swag.vyom
 
 import android.content.Context
+import android.util.Log
 import com.swag.vyom.dataclasses.UserDetails
 import androidx.core.content.edit
 import com.swag.vyom.dataclasses.AccountType
@@ -9,18 +10,62 @@ import com.swag.vyom.dataclasses.RiskProfile
 class SharedPreferencesHelper(context: Context) {
     private val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
+    fun saveaadhaar(aadhaar: String) {
+        sharedPreferences.edit {
+            putString("aadhaar", aadhaar)
+        }
+
+    }
+
+    fun getaadhaar(): String? {
+        return sharedPreferences.getString("aadhaar", null)
+    }
+
+    fun getmobile(): String? {
+        return sharedPreferences.getString("mobile_number", null)
+    }
+    fun savemobile(mobile: String) {
+        sharedPreferences.edit {
+            putString("mobile_number", mobile)
+        }
+
+    }
+
     // Save UserDetails to SharedPreferences
-    fun saveUserDetails(userDetails: UserDetails) {
-        with(sharedPreferences.edit()) {
-            putInt("id", userDetails.id)
-            putString("mobile_number", userDetails.mobile_number)
-            putString("aadhaar", userDetails.aadhaar)
-            putString("account_number", userDetails.account_number)
-            putString("first_name", userDetails.first_name)
-            putString("last_name", userDetails.last_name)
-            apply()
+    fun saveUserDetails(userDetails: UserDetails?) {
+        if(userDetails != null) {
+            with(sharedPreferences.edit()) {
+                putInt("id", userDetails.id)
+                putString("mobile_number", userDetails.mobile_number)
+                putString("aadhaar", userDetails.aadhaar)
+                putString("account_number", userDetails.account_number)
+                putString("first_name", userDetails.first_name)
+                putString("last_name", userDetails.last_name)
+                putString("email", userDetails.email)
+                putString("address", userDetails.address)
+                putString("cibil_score", userDetails.cibil_score?.toString())
+                putString("total_assets", userDetails.total_assets?.toString())
+                putString("risk_profile", userDetails.risk_profile.toString())
+                putString("last_transaction_date", userDetails.last_transaction_date)
+                putString(
+                    "total_transactions_count",
+                    userDetails.total_transactions_count?.toString()
+                )
+                putString("last_ticket_id", userDetails.last_ticket_id)
+                putString("gender", userDetails.gender)
+                putString("active_loan", userDetails.active_loan?.toString())
+                putString("age", userDetails.age.toString())
+                putString("image_link", userDetails.image_link)
+                putString("account_type", userDetails.account_type.toString())
+
+
+                apply()
+            }
+        }else{
+            Log.e("AuthViewModel", "UserDetails is null in authvm")
         }
     }
+
 
     // Retrieve UserDetails from SharedPreferences
     fun getUserDetails(): UserDetails? {
@@ -35,11 +80,10 @@ class SharedPreferencesHelper(context: Context) {
             first_name = sharedPreferences.getString("first_name", "") ?: "",
             last_name = sharedPreferences.getString("last_name", "") ?: "",
             account_type = when (sharedPreferences.getString("account_type", "UNKNOWN")) {
-                "SAVINGS" -> AccountType.SAVINGS
-                "CURRENT" -> AccountType.CURRENT
-                "BUSINESS" -> AccountType.BUSINESS
-                "FIXED_DEPOSIT" -> AccountType.FIXED_DEPOSIT
-                "RECURRING_DEPOSIT" -> AccountType.RECURRING_DEPOSIT
+                "Savings" -> AccountType.Savings
+                "Current" -> AccountType.Current
+                "Salary" -> AccountType.Salary
+                "Fixed Deposit" -> AccountType.FIXED_DEPOSIT
                 else -> AccountType.UNKNOWN
             },
             email = sharedPreferences.getString("email", null),
@@ -47,17 +91,19 @@ class SharedPreferencesHelper(context: Context) {
             cibil_score = sharedPreferences.getString("cibil_score", null)?.toIntOrNull(),
             total_assets = sharedPreferences.getString("total_assets", null)?.toDoubleOrNull(),
             risk_profile = when (sharedPreferences.getString("risk_profile", "UNKNOWN")) {
-                "LOW" -> RiskProfile.LOW
-                "MEDIUM" -> RiskProfile.MEDIUM
-                "HIGH" -> RiskProfile.HIGH
-                else -> RiskProfile.UNKNOWN
+                "LOW" -> RiskProfile.Low
+                "MEDIUM" -> RiskProfile.Medium
+                "HIGH" -> RiskProfile.High
+                else -> RiskProfile.Low
             },
             last_transaction_date = sharedPreferences.getString("last_transaction_date", null),
-            total_transactions_count = sharedPreferences.getString("total_transactions_count", null)?.toIntOrNull(),
+            total_transactions_count = sharedPreferences.getString("total_transactions_count", null)
+                ?.toIntOrNull(),
             last_ticket_id = sharedPreferences.getString("last_ticket_id", null),
             gender = sharedPreferences.getString("gender", null),
             active_loan = sharedPreferences.getString("active_loan", null)?.toDoubleOrNull(),
-            age = sharedPreferences.getString("age", null)?.toIntOrNull() ?: 0
+            age = sharedPreferences.getString("age", null)?.toIntOrNull() ?: 0,
+            image_link = sharedPreferences.getString("image_link", "") ?: ""
         )
     }
 

@@ -1,5 +1,6 @@
 package com.swag.vyom.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.components.FaceDetectionCameraPreview
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
@@ -47,13 +50,15 @@ import com.swag.vyom.utils.FaceMetrics
 import com.swag.vyom.utils.LivenessChallenge
 import com.swag.vyom.utils.LivenessDetectionService
 import com.swag.vyom.utils.LivenessState
+import com.swag.vyom.viewmodels.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun FaceAuth(navController: NavHostController) {
+fun FaceAuth(navController: NavHostController, userVM: UserViewModel) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
 
     // Remember liveness detection service
     val livenessService = remember { LivenessDetectionService(context) }
@@ -261,8 +266,8 @@ fun FaceAuth(navController: NavHostController) {
 
 
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewFaceAuth(){
-    FaceAuth(rememberNavController())
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewFaceAuth(){
+//    FaceAuth(rememberNavController())
+//}

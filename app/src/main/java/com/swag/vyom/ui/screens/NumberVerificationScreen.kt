@@ -1,6 +1,5 @@
 package com.swag.vyom.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -166,6 +165,7 @@ fun InteractionPart(navController: NavHostController, authVM: AuthViewModel, use
     var mobileNo by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
 
 
@@ -174,9 +174,8 @@ fun InteractionPart(navController: NavHostController, authVM: AuthViewModel, use
             response?.let {
                 if (it.success) {
                     if (it.data?.registered == true) {
-                        authVM.getUserDetails(mobileNo, aadharNo){
-                            userVM.saveUserDetails(it.data)
-                        }
+                        userVM.saveAadhaarOrMobile(aadhaar = aadharNo, mobile = mobileNo)
+
                         navController.navigate("face_auth")
                     } else {
                         navController.navigate("register_screen")

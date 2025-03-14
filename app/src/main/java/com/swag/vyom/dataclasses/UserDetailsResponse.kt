@@ -15,6 +15,7 @@ data class UserDetails(
     val account_number: String,
     val account_type: AccountType, // Enum for account types
     val first_name: String,
+    val image_link: String,
     val last_name: String,
     val email: String?,
     val address: String?,
@@ -31,12 +32,11 @@ data class UserDetails(
 
 // Enum for account types
 enum class AccountType {
-    SAVINGS, CURRENT, BUSINESS, FIXED_DEPOSIT, RECURRING_DEPOSIT, UNKNOWN
+    Savings, Current, Salary, FIXED_DEPOSIT, UNKNOWN
 }
-
 // Enum for risk profile
 enum class RiskProfile {
-    LOW, MEDIUM, HIGH, UNKNOWN
+    Low, Medium, High
 }
 
 
