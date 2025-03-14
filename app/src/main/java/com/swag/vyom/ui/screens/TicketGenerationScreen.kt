@@ -1,5 +1,7 @@
 package com.swag.vyom.ui.screens
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Build.VERSION_CODES.S
 import android.util.Log
@@ -67,6 +69,7 @@ import com.swag.vyom.dataclasses.SupportMode
 import com.swag.vyom.dataclasses.Ticket
 import com.swag.vyom.dataclasses.UrgencyLevel
 import com.swag.vyom.dataclasses.UserDetails
+import com.swag.vyom.ui.components.AttachedFileSection
 import com.swag.vyom.ui.components.AudioRecorderDialog
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
@@ -107,6 +110,10 @@ fun TicketGenerationScreen(
     var formattedDateTime by remember { mutableStateOf("") }
 
     var audioFilePath by remember { mutableStateOf("") }
+    var attachedFileName by remember { mutableStateOf("") } // To store the file name
+    var attachedFileThumbnail by remember { mutableStateOf<Bitmap?>(null) } // To store the thumbnail for images
+
+
 
 
     var mediaPath by remember { mutableStateOf("") }
@@ -157,8 +164,16 @@ fun TicketGenerationScreen(
         FilePickerDialog(
             onFileSelected = { uri ->
                 attachedFilePath = uri.path.toString()
-                showFilePicker = false
+                attachedFileName = File(attachedFilePath).name // Store the file name
 
+                // If the file is an image, generate a thumbnail
+                if (attachedFilePath.endsWith(".jpg") || attachedFilePath.endsWith(".png")) {
+                    attachedFileThumbnail = BitmapFactory.decodeFile(uri.path)
+                } else {
+                    attachedFileThumbnail = null // Clear thumbnail for non-image files
+                }
+
+                showFilePicker = false
             },
             onDismiss = { showFilePicker = false }
         )
@@ -299,9 +314,7 @@ fun TicketGenerationScreen(
                         category = it
                     },
                     onSubCategorySelected = { mainCategory, selectedSubCategory ->
-
                         subCategory = selectedSubCategory
-
                     }
                 )
 
@@ -329,6 +342,17 @@ fun TicketGenerationScreen(
                     onAttachFile = { showFilePicker = true }
                 )
 
+                // Display attached file name and thumbnail
+                AttachedFileSection(
+                    fileName = attachedFileName,
+                    thumbnail = attachedFileThumbnail,
+                    onRemoveFile = {
+                        attachedFilePath = ""
+                        attachedFileName = ""
+                        attachedFileThumbnail = null
+                    }
+                )
+
                 QueryDescriptionSection(
                     queryDescription = queryDescription,
                     onQueryDescriptionChange = { queryDescription = it }
@@ -336,7 +360,6 @@ fun TicketGenerationScreen(
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
-
             if (isLoading) {
                 CustomLoadingScreen()
             }

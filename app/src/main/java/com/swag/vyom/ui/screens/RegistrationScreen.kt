@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -67,6 +68,7 @@ fun RegistrationScreen(
     var capturedImageUri by remember { mutableStateOf<Uri?>(null) } // To store the captured image URI
     var showCameraScreen by remember { mutableStateOf(false) }
     val cameraVM by lazy{ CameraViewModel() }
+    var isLoading by remember { mutableStateOf(false) }
 
 
     if (showCameraScreen){
@@ -90,17 +92,17 @@ fun RegistrationScreen(
                 ) { uri, isVideo ->
 
 
-                        checkFaceAndSpoof(imagePath = uri.path.toString(), context = context){
-                            if(it){
-                                Toast.makeText(context, "Face Detected", Toast.LENGTH_LONG).show()
-                                Log.d("FaceDetection", "Face detected")
-                            }else{
-                                Toast.makeText(context, "No Face Detected! Please click image again", Toast.LENGTH_LONG).show()
-                                capturedImageUri = null
-                                cameraVM.clearPhoto()
+                    checkFaceAndSpoof(imagePath = uri.path.toString(), context = context){
+                        if(it){
+                            Toast.makeText(context, "Face Detected", Toast.LENGTH_LONG).show()
+                            Log.d("FaceDetection", "Face detected")
+                        }else{
+                            Toast.makeText(context, "No Face Detected! Please click image again", Toast.LENGTH_LONG).show()
+                            capturedImageUri = null
+                            cameraVM.clearPhoto()
 
-                                Log.d("FaceDetection", "No face detected")
-                            }
+                            Log.d("FaceDetection", "No face detected")
+                        }
 
                     }
                     capturedImageUri = uri
@@ -110,6 +112,7 @@ fun RegistrationScreen(
 
     }
 
+    // Main UI
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,12 +122,13 @@ fun RegistrationScreen(
     ) {
         RoundedCornerCard(screenWidth, screenHeight)
 
+        // Input fields
         CustomEditText(value = aadharNo, onValueChange = { aadharNo = it }, label = "Aadhar Card Number")
         Spacer(modifier = Modifier.height(16.dp))
 
         CustomEditText(value = mobileNo, onValueChange = { mobileNo = it }, label = "Mobile Number")
         Text(
-            text = "*Enter mobile number which is connected to your bank account",
+            text = "*Enter mobile number connected to your bank account",
             fontSize = 11.sp,
             modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp)
         )
@@ -146,73 +150,72 @@ fun RegistrationScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Button to navigate to CameraScreen
+        // Image capture section
+        if (capturedImageUri != null) {
+            Text(
+                text = "Image Captured: ${capturedImageUri?.lastPathSegment}",
+                color = Color.Green,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
         Button(
-            onClick = {
-               showCameraScreen = true
-            },
+            onClick = { showCameraScreen = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AppRed),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text(text = "Capture Image", color = Color.White, fontSize = 16.sp)
+            Text(text = if (capturedImageUri == null) "Capture Image" else "Retake Image", color = Color.White, fontSize = 16.sp)
         }
-
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Register button
         Button(
             onClick = {
-                if(capturedImageUri != null) {
-                    if(aadharNo.isNotEmpty() && mobileNo.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && language.isNotEmpty()) {
-                        if (password == confirmPassword) {
-                            // Call registration function
-                            val user = UserRegistrationRequest(
-                                id = id,
-                                mobile_number = mobileNo,
-                                aadhaar = aadharNo,
-                                account_number = " ", // Empty
-                                first_name = " ", // Empty
-                                last_name = " ", // Empty
-                                date_of_birth = " ", // Empty
-                                gender = " ", // Empty
-                                email = email,
-                                password = password,
-                                image_link = "", // Empty
-                                aadhaar_image_link = "", // Empty
-                                address = "", // Empty
-                                country = "India",
-                                language_preference = language
-                            )
-                            authVM.register(user)
+                if (capturedImageUri == null) {
+                    Toast.makeText(context, "Please capture your live photo!", Toast.LENGTH_LONG).show()
+                } else if (aadharNo.isEmpty() || mobileNo.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || language.isEmpty()) {
+                    Toast.makeText(context, "Please fill all the fields!", Toast.LENGTH_LONG).show()
+                } else if (password != confirmPassword) {
+                    Toast.makeText(context, "Passwords do not match!", Toast.LENGTH_LONG).show()
+                } else {
+                    isLoading = true
+                    val user = UserRegistrationRequest(
+                        id = preferencesHelper.getid(),
+                        mobile_number = mobileNo,
+                        aadhaar = aadharNo,
+                        account_number = " ",
+                        first_name = " ",
+                        last_name = " ",
+                        date_of_birth = " ",
+                        gender = " ",
+                        email = email,
+                        password = password,
+                        image_link = "",
+                        aadhaar_image_link = "",
+                        address = "",
+                        country = "India",
+                        language_preference = language
+                    )
+                    authVM.register(user)
 
-                            // Call image upload function if image is captured
-                            capturedImageUri?.let { uri ->
-                                val file = File(uri.path)
-                                ticketVM.uploadUserImage(aadharNo, file) { imageUrl ->
-                                    if (imageUrl.isNotEmpty()) {
-                                        Log.d(
-                                            "RegistrationScreen",
-                                            "Image uploaded successfully: $imageUrl"
-                                        )
-                                    } else {
-                                        Log.e("RegistrationScreen", "Failed to upload image")
-                                    }
+                    // Upload image
+                    capturedImageUri?.let { uri ->
+                        val file = File(uri.path)
+                        ticketVM.uploadUserImage(aadharNo, file) { imageUrl ->
+                            isLoading = false
+                            if (imageUrl.isNotEmpty()) {
+                                Log.d("RegistrationScreen", "Image uploaded: $imageUrl")
+                                navController.navigate("home_screen") {
+                                    popUpTo("customer_verification") { inclusive = true }
                                 }
+                            } else {
+                                Toast.makeText(context, "Failed to upload image!", Toast.LENGTH_LONG).show()
                             }
-
-                            navController.navigate("home_screen") {
-                                popUpTo("customer_verification") { inclusive = true }
-                            }
-                        } else {
-                            Log.e("AuthViewModel", "Passwords do not match")
                         }
-                    }else{
-                        Toast.makeText(context, "Please fill all the fields!", Toast.LENGTH_LONG).show()
                     }
-                }else{
-                    Toast.makeText(context, "Please upload your live photo!", Toast.LENGTH_LONG).show()
                 }
             },
             modifier = Modifier
@@ -221,7 +224,11 @@ fun RegistrationScreen(
             colors = ButtonDefaults.buttonColors(containerColor = AppRed),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text(text = "Register", color = Color.White, fontSize = 16.sp)
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+                Text(text = "Register", color = Color.White, fontSize = 16.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -229,3 +236,5 @@ fun RegistrationScreen(
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
+
+

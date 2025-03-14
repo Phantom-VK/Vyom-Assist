@@ -48,32 +48,42 @@ fun PhotoBottomSheetContent(
             modifier = modifier
         ) {
             items(bitmaps) { bitmap ->
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                ) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
-                    )
-
-                    // Delete button for each image
-                    IconButton(
-                        onClick = onDelete, // Trigger the onDelete lambda
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .background(Color.Red.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = Color.White
-                        )
-                    }
-                }
+                PhotoItem(bitmap = bitmap, onDelete = onDelete)
             }
         }
+    }
+}
+
+@Composable
+private fun PhotoItem(bitmap: Bitmap, onDelete: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+    ) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Delete button for each image
+        DeleteButton(onClick = onDelete)
+    }
+}
+
+@Composable
+private fun DeleteButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(8.dp)
+            .background(Color.Red.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = "Delete",
+            tint = Color.White
+        )
     }
 }

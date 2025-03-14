@@ -54,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.file.WatchEvent
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -146,158 +148,199 @@ fun CameraScreen(
             )
 
             // Camera switch button
-            IconButton(
+            CameraSwitchButton(
                 onClick = {
                     controller.cameraSelector =
                         if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
                             CameraSelector.DEFAULT_FRONT_CAMERA
                         } else CameraSelector.DEFAULT_BACK_CAMERA
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-                    .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Cameraswitch,
-                    contentDescription = "Switch camera",
-                    tint = Color.White
-                )
-            }
+                }
+            )
 
             // Recording indicator and timer
             if (isRecording) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp)
-                        .background(Color.Red, RoundedCornerShape(16.dp))
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FiberManualRecord,
-                            contentDescription = "Recording",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Recording: ${remainingTime}s",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                RecordingIndicator(remainingTime = remainingTime)
             }
 
             // Bottom action bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                // Photo capture button
-                IconButton(
-                    onClick = {
-                        if (!isRecording) { // Prevent taking photos while recording
-                            takePhoto(
-                                controller = controller,
-                                onPhotoTaken = { bitmap ->
-                                    cameraVM.onTakePhoto(bitmap)
-                                    savePhotoToCache(context, bitmap, userID)?.let { uri ->
-                                        onMediaCaptured(uri, false) // isVideo = false
-                                        showBottomSheet = true // Show bottom sheet for photo
-                                        scope.launch {
-                                            scaffoldState.bottomSheetState.expand()
-                                        }
-                                    }
-                                },
-                                context = context
-                            )
-                            Toast.makeText(
-                                context,
-                                "Image Captured Successfully",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    },
-                    modifier = Modifier
-                        .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(50))
-                        .padding(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Take photo",
-                        tint = if (isRecording) Color.Gray else Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
-                // Video recording button
-                IconButton(
-                    onClick = {
-                        if (isRecording) {
-                            // Stop recording if already recording
-                            recording?.stop()
-                            cameraVM.stopRecording()
-                        } else {
-                            // Start new recording if not recording
-                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                            val outputFile = File(context.filesDir, "query_recording_${timeStamp}_$userID.mp4")
-
-                            recording = controller.startRecording(
-                                FileOutputOptions.Builder(outputFile).build(),
-                                AudioConfig.create(true),
-                                ContextCompat.getMainExecutor(context),
-                            ) { event ->
-                                when (event) {
-                                    is VideoRecordEvent.Finalize -> {
-                                        if (!event.hasError()) {
-                                            // Only pass URI back on successful recording
-                                            onMediaCaptured(outputFile.toUri(), true) // isVideo = true
-                                            Toast.makeText(
-                                                context,
-                                                "Video Captured Successfully",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Video capture failed",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        }
-                                        cameraVM.stopRecording()
+            BottomActionBar(
+                isRecording = isRecording,
+                onPhotoCapture = {
+                    if (!isRecording) {
+                        takePhoto(
+                            controller = controller,
+                            onPhotoTaken = { bitmap ->
+                                cameraVM.onTakePhoto(bitmap)
+                                savePhotoToCache(context, bitmap, userID)?.let { uri ->
+                                    onMediaCaptured(uri, false) // isVideo = false
+                                    showBottomSheet = true // Show bottom sheet for photo
+                                    scope.launch {
+                                        scaffoldState.bottomSheetState.expand()
                                     }
                                 }
-                            }
+                            },
+                            context = context
+                        )
+                        Toast.makeText(
+                            context,
+                            "Image Captured Successfully",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                },
+                onVideoRecord = {
+                    if (isRecording) {
+                        // Stop recording if already recording
+                        recording?.stop()
+                        cameraVM.stopRecording()
+                    } else {
+                        // Start new recording if not recording
+                        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                        val outputFile = File(context.filesDir, "query_recording_${timeStamp}_$userID.mp4")
 
-                            cameraVM.startRecording()
+                        recording = controller.startRecording(
+                            FileOutputOptions.Builder(outputFile).build(),
+                            AudioConfig.create(true),
+                            ContextCompat.getMainExecutor(context),
+                        ) { event ->
+                            when (event) {
+                                is VideoRecordEvent.Finalize -> {
+                                    if (!event.hasError()) {
+                                        // Only pass URI back on successful recording
+                                        onMediaCaptured(outputFile.toUri(), true) // isVideo = true
+                                        Toast.makeText(
+                                            context,
+                                            "Video Captured Successfully",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Video capture failed",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                    cameraVM.stopRecording()
+                                }
+                            }
                         }
-                    },
-                    modifier = Modifier
-                        .background(Color.Red, RoundedCornerShape(50))
-                        .padding(12.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
-                        contentDescription = if (isRecording) "Stop Recording" else "Record Video",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
+
+                        cameraVM.startRecording()
+                    }
                 }
-            }
+            )
         }
     }
 }
 
+@Composable
+private fun CameraSwitchButton(onClick: () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize()) { // Add a Box as a container
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier
+                .align(Alignment.TopEnd) // Now align is valid here
+                .padding(16.dp)
+                .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Cameraswitch,
+                contentDescription = "Switch camera",
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecordingIndicator(remainingTime: Int) {
+    Box(
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .background(Color.Red, RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.FiberManualRecord,
+                contentDescription = "Recording",
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Recording: ${remainingTime}s",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun BottomActionBar(
+    isRecording: Boolean,
+    onPhotoCapture: () -> Unit,
+    onVideoRecord: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            // Photo capture button
+            CaptureButton(
+                icon = Icons.Default.PhotoCamera,
+                contentDescription = "Take photo",
+                onClick = onPhotoCapture,
+                isEnabled = !isRecording
+            )
+
+            // Video recording button
+            CaptureButton(
+                icon = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
+                contentDescription = if (isRecording) "Stop Recording" else "Record Video",
+                onClick = onVideoRecord,
+                backgroundColor = if (isRecording) Color.Red else Color.White.copy(alpha = 0.3f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CaptureButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    isEnabled: Boolean = true,
+    backgroundColor: Color = Color.White.copy(alpha = 0.3f)
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = isEnabled,
+        modifier = Modifier
+            .background(backgroundColor, RoundedCornerShape(50))
+            .padding(12.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = if (isEnabled) Color.White else Color.Gray,
+            modifier = Modifier.size(32.dp)
+        )
+    }
+}
 
 
 
