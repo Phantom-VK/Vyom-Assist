@@ -71,6 +71,7 @@ import com.swag.vyom.ui.components.AudioRecorderDialog
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomDropdown
 import com.swag.vyom.ui.components.DatePickerModal
+import com.swag.vyom.ui.components.FilePickerDialog
 import com.swag.vyom.ui.components.TimePickerDialog
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
@@ -110,6 +111,9 @@ fun TicketGenerationScreen(
     var mediaPath by remember { mutableStateOf("") }
     var isVideoMedia by remember { mutableStateOf(false) }
 
+    var showFilePicker by remember { mutableStateOf(false) }
+    var attachedFilePath by remember { mutableStateOf("") }
+
 
 
     var showDialog by remember { mutableStateOf(false) }
@@ -147,10 +151,17 @@ fun TicketGenerationScreen(
         )
     }
 
+    if (showFilePicker) {
+        Log.d("TicketGenScreen", "File Picker Should Open")
+        FilePickerDialog(
+            onFileSelected = { uri ->
+                attachedFilePath = uri.path.toString()
+                showFilePicker = false
 
-
-
-
+            },
+            onDismiss = { showFilePicker = false }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -189,6 +200,7 @@ fun TicketGenerationScreen(
                             // Upload files concurrently if they exist
                             var uploadedMediaUrl = ""
                             var uploadedAudioFileUrl = ""
+                            var uploadedFileUrl = ""
 
                             val mediaUploadJob = if (mediaPath.isNotBlank()) {
                                 async { ticketViewModel.uploadFileCoroutine(File(mediaPath), isVideoMedia) }
@@ -198,13 +210,34 @@ fun TicketGenerationScreen(
                                 async { ticketViewModel.uploadFileCoroutine(File(audioFilePath), isVideoMedia) }
                             } else null
 
+                            val fileUploadJob = if (attachedFilePath.isNotBlank()) {
+                                // Check if the attachedFilePath is a valid file path or URI
+                                val file = if (attachedFilePath.startsWith("content://")) {
+                                    // Handle content URI
+                                    // You may need to retrieve the file from the URI using ContentResolver
+                                    // This will require more code based on your use case
+                                    null
+                                } else {
+                                    // Handle regular file path
+                                    File(attachedFilePath)
+                                }
+
+                                if(file != null) {
+                                    async { ticketViewModel.uploadFileCoroutine(file, false) }
+
+                                } else null
+
+                            } else null
+
                             // Await the results
                             mediaUploadJob?.let { uploadedMediaUrl = it.await() }
                             audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
+                            fileUploadJob?.let { uploadedFileUrl = it.await() }
 
                             // Assign to the appropriate field based on media type
                             val uploadedImageUrl = if (!isVideoMedia) uploadedMediaUrl else ""
                             val uploadedVideoUrl = if (isVideoMedia) uploadedMediaUrl else ""
+
 
                             showDialog = true
 
@@ -225,7 +258,8 @@ fun TicketGenerationScreen(
                                 queryDescription,
                                 uploadedImageUrl = uploadedImageUrl,
                                 uploadedAudioFileUrl = uploadedAudioFileUrl,
-                                uploadedVideoUrl = uploadedVideoUrl  // Add this parameter
+                                uploadedVideoUrl = uploadedVideoUrl  ,
+                                attachedFileUrl = uploadedFileUrl
                             )
                         } catch (e: Exception) {
                             Log.e("Upload", "Error uploading files: ${e.message}")
@@ -290,7 +324,8 @@ fun TicketGenerationScreen(
 
                 AttachmentOptionsSection(
                     onRecordVideoImage = { showCameraScreen = true },
-                    onRecordAudio = { showAudioRecorder = true }
+                    onRecordAudio = { showAudioRecorder = true },
+                    onAttachFile = { showFilePicker = true }
                 )
 
                 QueryDescriptionSection(
@@ -338,8 +373,8 @@ fun TicketGenerationScreen(
                             onMediaCaptured = { uri, isVideo ->
                                 mediaPath = uri.path.toString()
                                 isVideoMedia = isVideo
-                                Log.d("VideoDetails", mediaPath)
-                                Log.d("VideoDetails", isVideoMedia.toString())
+                                Log.d("TicketGenScreen", mediaPath)
+                                Log.d("TicketGenScreen", isVideoMedia.toString())
                             }
                         )
                     }
@@ -537,6 +572,7 @@ private fun handleTicketSubmission(
     uploadedImageUrl: String,
     uploadedAudioFileUrl: String,
     uploadedVideoUrl: String,
+    attachedFileUrl: String // Add this parameter
 ) {
     val ticket = Ticket(
         user_id = userDetails?.id ?: 1,
@@ -551,9 +587,10 @@ private fun handleTicketSubmission(
         language_preference = languagePreference,
         description = queryDescription,
         audio_file_link = uploadedAudioFileUrl,
-        video_file_link = uploadedVideoUrl,  // Update to use the new variable
+        video_file_link = uploadedVideoUrl,
         attached_image_link = uploadedImageUrl,
-        assigned_department = ""
+        assigned_department = "",
+        attached_file_link = attachedFileUrl
     )
 
     ticketViewModel.createTicket(ticket)
@@ -777,7 +814,8 @@ fun SupportModeOption(
 @Composable
 private fun AttachmentOptionsSection(
     onRecordVideoImage: () -> Unit,
-    onRecordAudio: () -> Unit
+    onRecordAudio: () -> Unit,
+    onAttachFile: () -> Unit // Add this parameter
 ) {
     Row(
         modifier = Modifier
@@ -794,7 +832,8 @@ private fun AttachmentOptionsSection(
         )
         AttachmentOptions(
             icon = R.drawable.attachment,
-            text = "Attach File"
+            text = "Attach File",
+            onClick = onAttachFile // Pass the file picker callback
         )
         AttachmentOptions(
             icon = R.drawable.recording_icon,

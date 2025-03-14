@@ -10,7 +10,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
-import com.arthenica.ffmpegkit.FFmpegKit
 import com.swag.vyom.ui.navigation.Navigation
 import com.swag.vyom.ui.theme.VyomTheme
 import com.swag.vyom.viewmodels.AuthViewModel
@@ -25,8 +24,9 @@ class MainActivity : ComponentActivity() {
     private val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
 
 
+    @RequiresApi(Build.VERSION_CODES.R)
     private fun hasRequiredPermissions(): Boolean {
-        return CAMERAX_PERMISSIONS.all {
+        return APP_PERMISSIONS.all {
             ContextCompat.checkSelfPermission(
                 applicationContext,
                 it
@@ -35,9 +35,12 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        private val CAMERAX_PERMISSIONS = arrayOf(
+        @RequiresApi(Build.VERSION_CODES.R)
+        private val APP_PERMISSIONS = arrayOf(
             android.Manifest.permission.CAMERA,
             android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
         )
     }
 
@@ -48,7 +51,7 @@ class MainActivity : ComponentActivity() {
 
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(
-                this, CAMERAX_PERMISSIONS, 0
+                this, APP_PERMISSIONS, 0
             )
         }
 
