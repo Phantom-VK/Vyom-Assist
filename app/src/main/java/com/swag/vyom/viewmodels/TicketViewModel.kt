@@ -1,13 +1,17 @@
 package com.swag.vyom.viewmodels
 
-import android.R.attr.data
+import android.R.attr.category
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.api.RetrofitClient
+import com.swag.vyom.dataclasses.SupportTicket
 import com.swag.vyom.dataclasses.Ticket
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -16,7 +20,50 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import kotlin.coroutines.resume
 
-class TicketViewModel: ViewModel() {
+class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): ViewModel() {
+
+    private val _tickets = MutableStateFlow<List<SupportTicket>>(emptyList())
+    val tickets: StateFlow<List<SupportTicket>> = _tickets
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
+    fun fetchTicketsByUserId() {
+        viewModelScope.launch {
+            try {
+                val userId = preferenceHelper.getid() // Get user ID from preferences
+                if (userId != null) {
+                    val response = RetrofitClient.instance.fetchTicketsByUserId(userId)
+                    if (response.success) {
+                        val fetchedTickets = response.data.map { ticketResponse ->
+                            SupportTicket(
+                                ticket_id = ticketResponse.ticket_id ,
+                                ticket_created_at = ticketResponse.ticket_created_at,
+                                category = ticketResponse.category,
+                                preferred_support_mode = ticketResponse.preferred_support_mode,
+                                status = ticketResponse.status,
+                                sub_category = ticketResponse.sub_category,
+                                urgency_level = ticketResponse.urgency_level
+                            )
+                        }
+                        _tickets.value = fetchedTickets
+                        Log.d("TicketViewModel", "Tickets fetched successfully: ${fetchedTickets.size}")
+
+                    } else {
+                        _error.value = response.msg ?: "Unknown error"
+                        Log.e("TicketViewModel", "Error fetching tickets: ${response.msg}")
+                    }
+                } else {
+                    _error.value = "User ID not found"
+                    Log.e("TicketViewModel", "User ID not found in preferences")
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Unknown exception"
+                Log.e("TicketViewModel", "Exception: ${e.message} ${e.cause}")
+            }
+        }
+    }
+
 
     fun createTicket(ticket: Ticket) {
         viewModelScope.launch {

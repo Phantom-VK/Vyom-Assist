@@ -69,8 +69,8 @@ fun Navigation(
 
             //TODO Implement Fetch TIckets and pass ticket list
             MyTicketsScreen(
-                navController
-
+                navController,
+                ticketViewModel
             )
         }
         composable("chatbot_screen") {

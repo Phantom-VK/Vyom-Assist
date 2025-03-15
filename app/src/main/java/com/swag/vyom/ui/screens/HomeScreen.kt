@@ -49,6 +49,7 @@ import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.AuthViewModel
+import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
 
 @Composable
@@ -59,7 +60,6 @@ fun HomeScreen(
     preferencesHelper: SharedPreferencesHelper
 ) {
     var isLoading by remember { mutableStateOf(true) } // Initially set to true to show loading screen
-    val userDetailsState = userVM.userDetails.collectAsState()
 
     // Trigger data fetching when the composable is first launched
     LaunchedEffect(Unit) {

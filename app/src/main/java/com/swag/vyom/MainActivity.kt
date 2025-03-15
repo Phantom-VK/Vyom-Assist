@@ -18,10 +18,11 @@ import com.swag.vyom.viewmodels.UserViewModel
 
 class MainActivity : ComponentActivity() {
 
-    private val ticketViewModel by lazy { TicketViewModel()}
+
     private val authVM by lazy {  AuthViewModel()}
     private val sharedPreferencesHelper by lazy { SharedPreferencesHelper(this) }
     private val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
+    private val ticketViewModel by lazy { TicketViewModel(sharedPreferencesHelper)}
 
 
     @RequiresApi(Build.VERSION_CODES.R)

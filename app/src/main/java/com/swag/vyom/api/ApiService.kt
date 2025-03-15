@@ -10,6 +10,7 @@ import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.dataclasses.UserRegistrationResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
+import com.swag.vyom.dataclasses.SupportTicketResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
 import com.swag.vyom.dataclasses.UserImageUploadResponse
 import okhttp3.MultipartBody
@@ -66,6 +67,11 @@ interface ApiService {
         @Part("aadhaar") aadhaar: String,
         @Part file: MultipartBody.Part
     ): UserImageUploadResponse
+
+    @GET("user/fetch_tickets_by_user.php")
+    suspend fun fetchTicketsByUserId(
+        @Query("user_id") userId: Int
+    ): SupportTicketResponse
 
 
 

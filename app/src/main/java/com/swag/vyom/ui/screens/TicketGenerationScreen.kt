@@ -1004,10 +1004,11 @@ private fun QueryDescriptionSection(
 @Composable
 fun PreviewTicketScreen() {
     val context = LocalContext.current
-    val ticketViewModel = TicketViewModel()
+
     val sharedPreferencesHelper by lazy { SharedPreferencesHelper(context) }
     val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
     val navController = rememberNavController()
+    val ticketViewModel = TicketViewModel(sharedPreferencesHelper)
     TicketGenerationScreen(
         ticketViewModel = ticketViewModel,
         userVM = userVM,
