@@ -1,10 +1,11 @@
 package com.swag.vyom.ui.screens
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION_CODES.S
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,7 +31,6 @@ import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,6 +42,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +66,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.swag.vyom.R
 import com.swag.vyom.SharedPreferencesHelper
-import com.swag.vyom.dataclasses.SupportMode
 import com.swag.vyom.dataclasses.Ticket
 import com.swag.vyom.dataclasses.UrgencyLevel
 import com.swag.vyom.dataclasses.UserDetails
@@ -77,14 +77,17 @@ import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.components.DatePickerModal
 import com.swag.vyom.ui.components.FilePickerDialog
 import com.swag.vyom.ui.components.TimePickerDialog
+import com.swag.vyom.ui.components.VyomChatbotDialog
 import com.swag.vyom.ui.theme.AppRed
-import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.utils.calculateUrgencyLevel
+import com.swag.vyom.utils.getFilePathFromUri
 import com.swag.vyom.viewmodels.CameraViewModel
 import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
@@ -104,7 +107,7 @@ fun TicketGenerationScreen(
     // State variables
     var category by remember { mutableStateOf("") }
     var subCategory by remember { mutableStateOf("") }
-    var supportMode by remember { mutableStateOf<SupportMode?>(null) }
+    var supportMode by remember { mutableStateOf("") }
     var languagePreference by remember { mutableStateOf("English") }
     var queryDescription by remember { mutableStateOf("") }
     var formattedDateTime by remember { mutableStateOf("") }
@@ -114,13 +117,17 @@ fun TicketGenerationScreen(
     var attachedFileThumbnail by remember { mutableStateOf<Bitmap?>(null) } // To store the thumbnail for images
 
 
-
-
     var mediaPath by remember { mutableStateOf("") }
     var isVideoMedia by remember { mutableStateOf(false) }
 
     var showFilePicker by remember { mutableStateOf(false) }
+    var attachedFileUri by remember { mutableStateOf<Uri?>(null) }
     var attachedFilePath by remember { mutableStateOf("") }
+
+    var showChatbotDialog by remember { mutableStateOf(true) }
+
+
+
 
 
 
@@ -128,12 +135,22 @@ fun TicketGenerationScreen(
     var showAudioRecorder by remember { mutableStateOf(false) }
     var showCameraScreen by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
     var isLoading by remember { mutableStateOf(false) }
 
     val userDetails by userVM.userDetails.collectAsState()
 
     // Create a CoroutineScope for launching coroutines
     val coroutineScope = rememberCoroutineScope()
+
+    if (showChatbotDialog) {
+        VyomChatbotDialog(onDismiss = { showChatbotDialog = false })
+    }
+
+    LaunchedEffect(key1 = Unit){
+        showChatbotDialog = true
+    }
 
     // Handle dialog and camera screen
     if (showDialog) {
@@ -160,19 +177,12 @@ fun TicketGenerationScreen(
     }
 
     if (showFilePicker) {
-        Log.d("TicketGenScreen", "File Picker Should Open")
         FilePickerDialog(
             onFileSelected = { uri ->
-                attachedFilePath = uri.path.toString()
-                attachedFileName = File(attachedFilePath).name // Store the file name
-
-                // If the file is an image, generate a thumbnail
-                if (attachedFilePath.endsWith(".jpg") || attachedFilePath.endsWith(".png")) {
-                    attachedFileThumbnail = BitmapFactory.decodeFile(uri.path)
-                } else {
-                    attachedFileThumbnail = null // Clear thumbnail for non-image files
-                }
-
+                attachedFileUri = uri
+                val path = getFilePathFromUri(context, uri)
+                attachedFilePath = path ?: ""
+                Log.d("TicketGenScreen", "Attached File Path: $attachedFilePath")
                 showFilePicker = false
             },
             onDismiss = { showFilePicker = false }
@@ -209,80 +219,98 @@ fun TicketGenerationScreen(
             Button(
                 onClick = {
                     // Launch a coroutine to handle file uploads and ticket submission
-                    coroutineScope.launch {
-                        isLoading = true // Start loading
+                   coroutineScope.launch {
+    isLoading = true // Start loading
 
-                        try {
-                            // Upload files concurrently if they exist
-                            var uploadedMediaUrl = ""
-                            var uploadedAudioFileUrl = ""
-                            var uploadedFileUrl = ""
-
-                            val mediaUploadJob = if (mediaPath.isNotBlank()) {
-                                async { ticketViewModel.uploadFileCoroutine(File(mediaPath), isVideoMedia) }
-                            } else null
-
-                            val audioUploadJob = if (audioFilePath.isNotBlank()) {
-                                async { ticketViewModel.uploadFileCoroutine(File(audioFilePath), isVideoMedia) }
-                            } else null
-
-                            val fileUploadJob = if (attachedFilePath.isNotBlank()) {
-                                // Check if the attachedFilePath is a valid file path or URI
-                                val file = if (attachedFilePath.startsWith("content://")) {
-                                    // Handle content URI
-                                    // You may need to retrieve the file from the URI using ContentResolver
-                                    // This will require more code based on your use case
-                                    null
-                                } else {
-                                    // Handle regular file path
-                                    File(attachedFilePath)
-                                }
-
-                                if(file != null) {
-                                    async { ticketViewModel.uploadFileCoroutine(file, false) }
-
-                                } else null
-
-                            } else null
-
-                            // Await the results
-                            mediaUploadJob?.let { uploadedMediaUrl = it.await() }
-                            audioUploadJob?.let { uploadedAudioFileUrl = it.await() }
-                            fileUploadJob?.let { uploadedFileUrl = it.await() }
-
-                            // Assign to the appropriate field based on media type
-                            val uploadedImageUrl = if (!isVideoMedia) uploadedMediaUrl else ""
-                            val uploadedVideoUrl = if (isVideoMedia) uploadedMediaUrl else ""
+    try {
+        // Upload files concurrently if they exist
+        var uploadedMediaUrl = ""
+        var uploadedAudioFileUrl = ""
+        var uploadedFileUrl = ""
 
 
-                            showDialog = true
 
-                            // Now create the ticket with the URLs
-                            handleTicketSubmission(
-                                ticketViewModel,
-                                userDetails,
-                                category,
-                                subCategory,
-                                urgencyLevel = calculateUrgencyLevel(
-                                    category,
-                                    subCategory,
-                                    formattedDateTime
-                                ),
-                                supportMode,
-                                formattedDateTime,
-                                languagePreference,
-                                queryDescription,
-                                uploadedImageUrl = uploadedImageUrl,
-                                uploadedAudioFileUrl = uploadedAudioFileUrl,
-                                uploadedVideoUrl = uploadedVideoUrl  ,
-                                attachedFileUrl = uploadedFileUrl
-                            )
-                        } catch (e: Exception) {
-                            Log.e("Upload", "Error uploading files: ${e.message}")
-                        } finally {
-                            isLoading = false // Stop loading
-                        }
-                    }
+        val uploadJobs = mutableListOf<Deferred<String?>>() // Use a list for all upload jobs
+
+        if (mediaPath.isNotBlank()) {
+            val job = async {
+                ticketViewModel.uploadFileCoroutine(
+                    File(mediaPath),
+                    isVideoMedia
+                )
+            }
+            uploadJobs.add(job)
+        }
+
+        if (audioFilePath.isNotBlank()) {
+            val job = async {
+                ticketViewModel.uploadFileCoroutine(
+                    File(audioFilePath),
+                    false // Assuming audio is not video
+                )
+            }
+            uploadJobs.add(job)
+        }
+
+        if (attachedFileUri != null) {
+
+
+                val job = async {
+
+                    ticketViewModel.uploadFileCoroutine(File(attachedFilePath), false)
+
+                }
+                uploadJobs.add(job)
+
+        }
+
+        // Await all upload results concurrently
+        val uploadResults = uploadJobs.awaitAll()
+
+        //Process the result
+        uploadedMediaUrl = uploadResults.getOrNull(0) ?: ""
+        uploadedAudioFileUrl = uploadResults.getOrNull(1) ?: ""
+        uploadedFileUrl = uploadResults.getOrNull(2) ?: ""
+
+        // Assign to the appropriate field based on media type
+        val uploadedImageUrl = if (!isVideoMedia) uploadedMediaUrl else ""
+        val uploadedVideoUrl = if (isVideoMedia) uploadedMediaUrl else ""
+
+
+        showDialog = true
+
+        Log.d("TicketGenScreen", "File Uploaded Successfully: " +
+                "Media ${uploadedMediaUrl}" +
+                "Audio ${uploadedAudioFileUrl}" +
+                "File ${uploadedFileUrl}")
+
+
+        // Now create the ticket with the URLs
+        handleTicketSubmission(
+            ticketViewModel,
+            userDetails,
+            category,
+            subCategory,
+            urgencyLevel = calculateUrgencyLevel(
+                category,
+                subCategory,
+                formattedDateTime
+            ),
+            supportMode,
+            formattedDateTime,
+            languagePreference,
+            queryDescription,
+            uploadedImageUrl = uploadedImageUrl,
+            uploadedAudioFileUrl = uploadedAudioFileUrl,
+            uploadedVideoUrl = uploadedVideoUrl,
+            attachedFileUrl = uploadedFileUrl
+        )
+    } catch (e: Exception) {
+        Log.e("Upload", "Error uploading files: ${e.message}")
+    } finally {
+        isLoading = false // Stop loading
+    }
+}
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -292,7 +320,7 @@ fun TicketGenerationScreen(
                 enabled = category.isNotBlank() &&
                         queryDescription.isNotBlank() &&
                         subCategory.isNotBlank() &&
-                        supportMode != null
+                        supportMode.isNotBlank() &&  !isLoading
             ) {
                 Text(
                     text = "Generate",
@@ -324,10 +352,23 @@ fun TicketGenerationScreen(
                     color = Color.Black
                 )
 
+
+
                 SupportModeSection(
-                    onSupportModeSelected = { supportMode = it },
-                    onTimeSlotSelected = { formattedDateTime = it },
-                    onLanguageSelected = { languagePreference = it }
+                    onSupportModeSelected = {
+                        Toast.makeText(context, "Support Mode Selected: $it", Toast.LENGTH_SHORT)
+                            .show()
+                        supportMode = it
+                    },
+                    onTimeSlotSelected = {
+                        Toast.makeText(context, "Support Mode Selected: $it", Toast.LENGTH_SHORT)
+                            .show()
+                        formattedDateTime = it
+                    },
+                    onLanguageSelected = {
+                        Toast.makeText(context, "Language Selected: $it", Toast.LENGTH_SHORT).show()
+                        languagePreference = it
+                    }
                 )
 
                 HorizontalDivider(
@@ -347,7 +388,7 @@ fun TicketGenerationScreen(
                     fileName = attachedFileName,
                     thumbnail = attachedFileThumbnail,
                     onRemoveFile = {
-                        attachedFilePath = ""
+                        attachedFileUri = null
                         attachedFileName = ""
                         attachedFileThumbnail = null
                     }
@@ -578,7 +619,7 @@ private fun handleTicketSubmission(
     category: String,
     subCategory: String,
     urgencyLevel: UrgencyLevel,
-    supportMode: SupportMode?,
+    supportMode: String,
     formattedDateTime: String,
     languagePreference: String,
     queryDescription: String,
@@ -587,12 +628,14 @@ private fun handleTicketSubmission(
     uploadedVideoUrl: String,
     attachedFileUrl: String // Add this parameter
 ) {
+
+    Log.d("TicketGenScreen", supportMode)
     val ticket = Ticket(
         user_id = userDetails?.id ?: 1,
         category = category,
         sub_category = subCategory,
         urgency_level = urgencyLevel.toString(),
-        preferred_support_mode = supportMode?.toString() ?: "",
+        preferred_support_mode = supportMode,
         available_timedate = formattedDateTime.ifEmpty {
             LocalDateTime.now().plusDays(1)
                 .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
@@ -603,7 +646,7 @@ private fun handleTicketSubmission(
         video_file_link = uploadedVideoUrl,
         attached_image_link = uploadedImageUrl,
         assigned_department = "",
-        attached_file_link = attachedFileUrl
+        attached_file = attachedFileUrl
     )
 
     ticketViewModel.createTicket(ticket)
@@ -612,7 +655,7 @@ private fun handleTicketSubmission(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SupportModeSection(
-    onSupportModeSelected: (SupportMode) -> Unit,
+    onSupportModeSelected: (String) -> Unit,
     onTimeSlotSelected: (String) -> Unit,
     onLanguageSelected: (String) -> Unit
 ) {
@@ -621,20 +664,29 @@ fun SupportModeSection(
     var selectedDate by remember { mutableStateOf<Long?>(null) }
     var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
     var formattedDateTime by remember { mutableStateOf("") }
+    var supportMode by remember { mutableStateOf("") }
 
     Text(
-        modifier = Modifier.padding(start = 16.dp, top = 20.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = 16.dp, top = 20.dp),
         text = "Preferred Support Mode",
         fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
         color = AppRed
     )
 
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        Text(
+            "Selected Support Mode: $supportMode",
+            modifier = Modifier.padding(15.dp),
+            textAlign = TextAlign.Start,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -644,17 +696,26 @@ fun SupportModeSection(
             SupportModeOption(
                 icon = R.drawable.fluent_video_person_call_16_regular,
                 text = "Video Call",
-                onSelect = { onSupportModeSelected(SupportMode.Video_Call) }
+                onSelect = {
+                    supportMode = "Video Call"
+                    onSupportModeSelected("Video Call")
+                }
             )
             SupportModeOption(
                 icon = R.drawable.call_icon,
                 text = "Audio Call",
-                onSelect = { onSupportModeSelected(SupportMode.Voice_Call) }
+                onSelect = {
+                    supportMode = "Voice Call"
+                    onSupportModeSelected("Voice Call")
+                }
             )
             SupportModeOption(
                 icon = R.drawable.gridicons_chat,
                 text = "Chat",
-                onSelect = { onSupportModeSelected(SupportMode.Text_Message) }
+                onSelect = {
+                    supportMode = "Text Message"
+                    onSupportModeSelected("Text Message")
+                }
             )
         }
 
@@ -788,11 +849,11 @@ fun SupportModeOption(
             .size(100.dp)
             .border(
                 2.dp,
-                color = if (isSelected) SkyBlue else Color.Black,
+                color = Color.Black,
                 shape = RoundedCornerShape(10.dp)
             )
             .background(
-                color = if (isSelected) LightSkyBlue else Color.White,
+                color = Color.White,
                 shape = RoundedCornerShape(10.dp)
             )
             .clip(RoundedCornerShape(10.dp))
@@ -812,13 +873,13 @@ fun SupportModeOption(
                 painter = painterResource(icon),
                 contentDescription = text,
                 modifier = Modifier.size(40.dp),
-                tint = if (isSelected) SkyBlue else Color.Black
+                tint = Color.Black
             )
 
             Text(
                 text = text,
                 fontSize = 15.sp,
-                color = if (isSelected) SkyBlue else Color.Black
+                color = Color.Black
             )
         }
     }
@@ -846,7 +907,7 @@ private fun AttachmentOptionsSection(
         AttachmentOptions(
             icon = R.drawable.attachment,
             text = "Attach File",
-            onClick = onAttachFile // Pass the file picker callback
+            onClick = onAttachFile
         )
         AttachmentOptions(
             icon = R.drawable.recording_icon,

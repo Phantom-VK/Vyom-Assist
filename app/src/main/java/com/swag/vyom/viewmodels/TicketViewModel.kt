@@ -1,5 +1,6 @@
 package com.swag.vyom.viewmodels
 
+import android.R.attr.data
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,8 +73,9 @@ class TicketViewModel: ViewModel() {
     ) {
         viewModelScope.launch {
             try {
+                Log.d("TicketViewModel", "File size: ${file.length()}")
                 // Compress video if it's a large file
-                val uploadFile = if (file.length() > 10 * 1024 * 1024 && isVideo) { // 10 MB
+                val uploadFile = if (isVideo && file.length() > 10 * 1024 * 1024 ) { // 10 MB
                     // Compress video before upload
                     compressVideo(file) ?: file // Fallback to original file if compression fails
                 } else {
@@ -104,6 +106,9 @@ class TicketViewModel: ViewModel() {
 
     // Function to compress video using FFmpegKit
     private fun compressVideo(file: File): File? {
+
+        Log.d("TicketViewModel", "File size: ${file.length()}" +
+                "Inside File Compression")
             val outputFile = File(file.parent, "compressed_${file.name}")
 
             try {

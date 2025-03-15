@@ -3,15 +3,6 @@ package com.swag.vyom.dataclasses
 enum class UrgencyLevel {
     Low, Medium, High, Critical
 }
-
-enum class SupportMode {
-    Video_Call, Voice_Call, Text_Message
-}
-
-enum class PriorityLevel {
-    Normal, High, VIP, Low
-}
-
 data class Ticket(
     val user_id: Int,
     val category: String,
@@ -26,7 +17,7 @@ data class Ticket(
     val attached_image_link: String? = null,
     val assigned_department: String? = null,
     val priority_level: String = "",
-    val attached_file_link: String = ""
+    val attached_file: String
 )
 
 

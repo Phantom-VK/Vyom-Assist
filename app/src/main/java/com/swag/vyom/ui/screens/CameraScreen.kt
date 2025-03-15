@@ -6,14 +6,20 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.net.Uri
 import android.util.Log
+import android.util.Range
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoRecordEvent
+import androidx.camera.video.VideoSpec
+import androidx.camera.view.CameraController
 import androidx.camera.view.CameraController.IMAGE_CAPTURE
 import androidx.camera.view.CameraController.VIDEO_CAPTURE
 import androidx.camera.view.LifecycleCameraController
@@ -68,7 +74,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
-import java.nio.file.WatchEvent
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -84,12 +89,23 @@ fun CameraScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
+
+    val selector = QualitySelector.fromOrderedList(
+        listOf(Quality.LOWEST, Quality.SD),
+        FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)
+    )
+
+
     val controller = remember {
         LifecycleCameraController(context).apply {
             setEnabledUseCases(IMAGE_CAPTURE or VIDEO_CAPTURE)
+            // Set the QualitySelector here, after use cases are enabled
+            videoCaptureQualitySelector = selector
+            videoCaptureTargetFrameRate = Range(15, 28)
+
+
         }
     }
-
     val bitmap = cameraVM.bitmap.collectAsState().value
     val isRecording = cameraVM.isRecording.collectAsState().value
 
