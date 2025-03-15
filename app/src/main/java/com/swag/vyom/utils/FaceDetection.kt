@@ -3,19 +3,17 @@ package com.swag.vyom.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Log
+import androidx.core.graphics.get
+import androidx.core.graphics.scale
+import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.common.InputImage
-import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-import androidx.core.graphics.scale
-import androidx.core.graphics.get
 
 
 /**
@@ -53,18 +51,7 @@ fun checkFaceAndSpoof(context: Context, imagePath: String, onResult: (Boolean) -
         .addOnSuccessListener { faces ->
             if (faces.isNotEmpty()) {
                 Log.d("FaceDetection", "Face detected: ${faces.size} faces found")
-//                // Step 5: Check for spoof (placeholder for spoof detection logic)
-//                val isSpoof = checkForSpoof(
-//                    bitmap,
-//                    context = context
-//                ) // Implement spoof detection logic
-//                if (isSpoof) {
-//                    Log.d("FaceDetection", "Spoof detected")
-//                    onResult(false) // Notify that the face is a spoof
-//                } else {
-//                    Log.d("FaceDetection", "No spoof detected")
-//                    onResult(true) // Notify that a valid face is detected
-//                }
+
             } else {
                 Log.d("FaceDetection", "No face detected")
                 onResult(false) // Notify that no face is detected
@@ -81,22 +68,7 @@ fun checkFaceAndSpoof(context: Context, imagePath: String, onResult: (Boolean) -
  * Helper function to convert Uri to Bitmap.
  */
 
-//private fun checkForSpoof(bitmap: Bitmap, context: Context): Boolean {
-//    // Load the TensorFlow Lite model
-//    val modelFile = loadModelFile(context, "spoof_detection_model.tflite")
-//    val interpreter = Interpreter(modelFile)
-//
-//    // Preprocess the bitmap (resize, normalize, etc.)
-//    val inputBuffer = preprocessBitmap(bitmap)
-//
-//    // Run inference
-//    val outputBuffer = ByteBuffer.allocateDirect(1 * 4) // Adjust based on model output
-//    interpreter.run(inputBuffer, outputBuffer)
-//
-//    // Interpret the result
-//    val isSpoof = outputBuffer.getFloat(0) > 0.5f // Adjust threshold as needed
-//    return isSpoof
-//}
+
 
 private fun loadModelFile(context: Context, modelPath: String): MappedByteBuffer {
     val fileDescriptor = context.assets.openFd(modelPath)

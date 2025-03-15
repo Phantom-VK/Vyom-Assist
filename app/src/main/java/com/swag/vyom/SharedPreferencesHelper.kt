@@ -41,6 +41,11 @@ class SharedPreferencesHelper(context: Context) {
         return if(id != 0) id else null
     }
 
+    fun getUserImageLink(): String? {
+        return sharedPreferences.getString("image_link", null)
+
+    }
+
     // Save UserDetails to SharedPreferences
     fun saveUserDetails(userDetails: UserDetails?) {
         if(userDetails != null) {
@@ -101,9 +106,9 @@ class SharedPreferencesHelper(context: Context) {
             cibil_score = sharedPreferences.getString("cibil_score", null)?.toIntOrNull(),
             total_assets = sharedPreferences.getString("total_assets", null)?.toDoubleOrNull(),
             risk_profile = when (sharedPreferences.getString("risk_profile", "UNKNOWN")) {
-                "LOW" -> RiskProfile.Low
-                "MEDIUM" -> RiskProfile.Medium
-                "HIGH" -> RiskProfile.High
+                "Low" -> RiskProfile.Low
+                "Medium" -> RiskProfile.Medium
+                "High" -> RiskProfile.High
                 else -> RiskProfile.Low
             },
             last_transaction_date = sharedPreferences.getString("last_transaction_date", null),

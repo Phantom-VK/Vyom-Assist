@@ -1,6 +1,5 @@
 package com.swag.vyom.ui.screens
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,12 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,12 +37,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.swag.vyom.R
 import com.swag.vyom.SharedPreferencesHelper
-import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
 import com.swag.vyom.viewmodels.AuthViewModel
-import com.swag.vyom.viewmodels.TicketViewModel
 import com.swag.vyom.viewmodels.UserViewModel
 
 @Composable
@@ -59,28 +50,7 @@ fun HomeScreen(
     authVM: AuthViewModel,
     preferencesHelper: SharedPreferencesHelper
 ) {
-    var isLoading by remember { mutableStateOf(true) } // Initially set to true to show loading screen
 
-    // Trigger data fetching when the composable is first launched
-    LaunchedEffect(Unit) {
-        authVM.getUserDetails(
-            mobileNumber = preferencesHelper.getmobile(),
-            aadhaar = preferencesHelper.getaadhaar()
-        ) { response ->
-            if (response.success) {
-                userVM.saveUserDetails(response.data)
-                Log.d("HomeScreen", "Fetched data successfully: ${response.data}")
-            } else {
-                Log.e("HomeScreen", "Failed to fetch user details: ${response.msg}")
-            }
-            isLoading = false // Stop loading after fetching data
-        }
-    }
-
-    // Show loading screen while data is being fetched
-    if (isLoading) {
-        CustomLoadingScreen()
-    }
         // Display the main content once data is fetched
         Surface(
             modifier = Modifier.fillMaxSize(),

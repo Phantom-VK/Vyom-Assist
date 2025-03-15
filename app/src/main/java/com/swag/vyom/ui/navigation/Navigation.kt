@@ -40,10 +40,10 @@ fun Navigation(
             SplashScreen(navController)
         }
         composable("customer_verification") {
-            NumberVerificationScreen(navController, authVM, userVM)
+            NumberVerificationScreen(navController, authVM, userVM, preferencesHelper)
         }
         composable("face_auth") {
-            FaceAuth(navController, userVM)
+            FaceAuth(navController, authVM)
         }
         composable("home_screen") {
             HomeScreen(navController, userVM = userVM, authVM = authVM, preferencesHelper = preferencesHelper )

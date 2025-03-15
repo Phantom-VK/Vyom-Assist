@@ -106,6 +106,8 @@ dependencies {
     implementation ("com.google.mlkit:face-detection:16.1.7")
 
     implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
+    
+    implementation("androidx.biometric:biometric-ktx:1.4.0-alpha02")
 
 
 

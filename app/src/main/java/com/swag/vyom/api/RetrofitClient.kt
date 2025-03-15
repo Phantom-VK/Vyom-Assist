@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     private const val BASE_URL = "https://sggsapp.co.in/vyom/"
 
+    private const val BASE_URL2 = "https://flask-api-411792825056.asia-south1.run.app"
+
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
@@ -36,5 +38,16 @@ object RetrofitClient {
 
         retrofit.create(ApiService::class.java)
     }
+
+    val faceAuthInstance: ApiService by lazy{
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL2)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(okHttpClient)
+            .build()
+
+        retrofit.create(ApiService::class.java)
+    }
 }
+
 

@@ -165,7 +165,8 @@ fun RegistrationScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AppRed),
-            shape = RoundedCornerShape(10.dp)
+            shape = RoundedCornerShape(10.dp),
+            enabled = !isLoading
         ) {
             Text(text = if (capturedImageUri == null) "Capture Image" else "Retake Image", color = Color.White, fontSize = 16.sp)
         }

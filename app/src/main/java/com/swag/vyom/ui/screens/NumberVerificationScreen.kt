@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.swag.vyom.R
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomEditText
+import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
@@ -57,15 +59,19 @@ import kotlinx.coroutines.launch
 fun NumberVerificationScreen(
     navController: NavHostController,
     authVM: AuthViewModel,
-    userVM: UserViewModel
+    userVM: UserViewModel,
+    preferencesHelper: SharedPreferencesHelper
 ) {
-
-    //TODO Add Loading Screen
+    // State to control the loading screen
+    var isLoading by remember { mutableStateOf(false) }
 
     // Get screen dimensions to make UI responsive
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
+
+    // Show loading screen while data is being fetched
+
 
     Column(
         modifier = Modifier
@@ -76,9 +82,13 @@ fun NumberVerificationScreen(
     ) {
         RoundedCornerCard(screenWidth, screenHeight)
         Instructions(screenWidth)
-        InteractionPart(navController, authVM, userVM)
+        InteractionPart(navController, authVM, userVM, preferencesHelper) { isLoading = it }
+    }
+    if (isLoading) {
+        CustomLoadingScreen()
     }
 }
+
 
 @Composable
 fun RoundedCornerCard(screenWidth: Dp, screenHeight: Dp) {
@@ -167,26 +177,41 @@ fun Instructions(screenWidth: Dp) {
 fun InteractionPart(
     navController: NavHostController,
     authVM: AuthViewModel,
-    userVM: UserViewModel
+    userVM: UserViewModel,
+    preferencesHelper: SharedPreferencesHelper,
+    onLoadingStateChange: (Boolean) -> Unit // Callback to update loading state
 ) {
     var aadharNo by remember { mutableStateOf("") }
     var mobileNo by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-
-
     LaunchedEffect(authVM.customerStatus) {
         authVM.customerStatus.collect { response ->
             response?.let {
                 if (it.success) {
-                    Log.d("AuthViewModel", "Customer Status: ${it.data?.id}")
                     userVM.savePrimaryUserDetails(
                         aadhaar = (if (aadharNo.isNotEmpty()) aadharNo else it.data?.aadhaar).toString(),
-                        mobile =(if(mobileNo.isNotEmpty()) mobileNo else it.data?.mobile_number.toString()),
+                        mobile = (if (mobileNo.isNotEmpty()) mobileNo else it.data?.mobile_number.toString()),
                         id = it.data?.id
                     )
                     if (it.data?.registered == true) {
+                        // Start loading
+                        onLoadingStateChange(true)
+
+                        authVM.getUserDetails(
+                            mobileNumber = preferencesHelper.getmobile(),
+                            aadhaar = preferencesHelper.getaadhaar()
+                        ) { response ->
+                            if (response.success) {
+                                userVM.saveUserDetails(response.data)
+                                Log.d("NumberVerificationScreen", "Fetched data successfully: ${response.data}")
+                            } else {
+                                Log.e("NumberVerificationScreen", "Failed to fetch user details: ${response.msg}")
+                            }
+                            // Stop loading after fetching data
+                            onLoadingStateChange(false)
+                        }
 
                         navController.navigate("face_auth")
                     } else {
@@ -198,7 +223,6 @@ fun InteractionPart(
             }
         }
     }
-
 
     if (showDialog) {
         CustomDialog(
@@ -266,9 +290,10 @@ fun InteractionPart(
         Button(
             onClick = {
                 coroutineScope.launch {
+                    // Start loading
+                    onLoadingStateChange(true)
                     authVM.checkCustomer(mobileNo, aadharNo)
                 }
-
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -282,9 +307,6 @@ fun InteractionPart(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }
-
-
-
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -13,8 +13,12 @@ import com.swag.vyom.dataclasses.UserRegistrationRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val preferencesHelper: SharedPreferencesHelper) : ViewModel() {
 
     private val _registrationStatus = MutableStateFlow<Boolean?>(null)
     val registrationStatus: StateFlow<Boolean?> = _registrationStatus
@@ -58,6 +62,33 @@ class AuthViewModel : ViewModel() {
             }
         }
     }
+
+    fun faceAuth(image: File, image_link: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val requestFile = image.asRequestBody("image/*".toMediaTypeOrNull())
+                val multipartBody = MultipartBody.Part.createFormData("image2", image.name, requestFile)
+
+                Log.d("AuthViewModel", "Sending request with image_url: $image_link and file: ${image.name}")
+
+                val response = RetrofitClient.faceAuthInstance.faceAuth(imageUrl = image_link, image2 = multipartBody)
+
+                Log.d("AuthViewModel", "Response received: ${response.toString()}")
+
+                if (response.is_match) {
+                    Log.d("AuthViewModel", "Face Authentication successful")
+                    onResult(true)
+                } else {
+                    Log.e("AuthViewModel", "Face Authentication failed: ${response.euclidean_distance}")
+                    onResult(false)
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Face Authentication Exception: ${e.localizedMessage}")
+                onResult(false)
+            }
+        }
+    }
+
 
     suspend fun checkCustomer(mobileNumber: String?, aadhaar: String?) {
         if (mobileNumber.isNullOrBlank() && aadhaar.isNullOrBlank()) {
@@ -120,4 +151,6 @@ class AuthViewModel : ViewModel() {
             }
 
     }
+
+
 }
