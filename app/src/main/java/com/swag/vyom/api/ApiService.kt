@@ -1,21 +1,18 @@
 package com.swag.vyom.api
 
 import com.swag.vyom.dataclasses.ApiTicketResponse
-import com.swag.vyom.dataclasses.ChatBotResponse
-import com.swag.vyom.dataclasses.ChatRequest
 import com.swag.vyom.dataclasses.ChatResponse
+import com.swag.vyom.dataclasses.CheckCustomerResponse
+import com.swag.vyom.dataclasses.FaceCompareResponse
+import com.swag.vyom.dataclasses.FileUploadResponse
+import com.swag.vyom.dataclasses.SupportTicketResponse
 import com.swag.vyom.dataclasses.Ticket
+import com.swag.vyom.dataclasses.UserDetailsResponse
+import com.swag.vyom.dataclasses.UserImageUploadResponse
 import com.swag.vyom.dataclasses.UserLoginRequest
 import com.swag.vyom.dataclasses.UserLoginResponse
 import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.dataclasses.UserRegistrationResponse
-import com.swag.vyom.dataclasses.CheckCustomerResponse
-import com.swag.vyom.dataclasses.FaceAuthResponse
-import com.swag.vyom.dataclasses.FaceCompareResponse
-import com.swag.vyom.dataclasses.FileUploadResponse
-import com.swag.vyom.dataclasses.SupportTicketResponse
-import com.swag.vyom.dataclasses.UserDetailsResponse
-import com.swag.vyom.dataclasses.UserImageUploadResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -24,7 +21,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Query
-import java.io.File
 
 interface ApiService {
 
@@ -91,9 +87,3 @@ interface ApiService {
 
 }
 
-interface ChatbotApiService {
-    @POST("chat")
-    suspend fun sendMessage(
-        @Body request: ChatRequest
-    ): ChatBotResponse
-}

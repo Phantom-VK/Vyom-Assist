@@ -1,7 +1,5 @@
 package com.swag.vyom.dataclasses
 
-import com.swag.vyom.ui.screens.ChatBotMessage
-
 data class ChatResponse(
     val status: String,
     val messages: List<ChatMessage>
