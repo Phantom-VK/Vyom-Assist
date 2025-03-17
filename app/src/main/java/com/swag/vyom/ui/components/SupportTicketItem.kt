@@ -1,9 +1,14 @@
 package com.swag.vyom.ui.components
 
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -15,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.navigation.NavController
 
 @Composable
 fun SupportTicketItem(
@@ -22,8 +28,10 @@ fun SupportTicketItem(
     dateTime: String,
     category: String,
     supportMode: String,
+    connectionWay:String,
     status: String,
     subCategory: String,
+    navController: NavController,
     urgencyLevel: String
 ) {
     val context = LocalContext.current
@@ -65,7 +73,13 @@ fun SupportTicketItem(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = { /* Handle view details action */ },
+                    onClick = {
+                        if(supportMode == "Text Message"){
+                        navController.navigate("chatting_screen/$ticketId")
+                        }else if(supportMode == "Video Call"){
+                            //TODO Link Open
+                        }
+                    },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = "View Details")

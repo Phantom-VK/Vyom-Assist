@@ -43,10 +43,10 @@ data class ChatBotMessage(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(
+fun ChatbotScreen(
     onBackClick: () -> Unit = {}
 ) {
-    ChatScreen()
+    ChatbotScreen()
 
 //    val messages = remember { mutableStateListOf(
 //        ChatMessage("Hi Kitsbase, Let me know you need help and you can ask us any questions.", false, Date(System.currentTimeMillis() - 60000)),
@@ -214,14 +214,14 @@ fun BottomChatInput(
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreen()
+    ChatbotScreen()
 }
 
 
 data class Message(val text: String, val isUser: Boolean)
 
 @Composable
-fun ChatScreen() {
+fun ChatbotScreen() {
     var userMessage by remember { mutableStateOf(TextFieldValue("")) }
     val messages = remember { mutableStateListOf<Message>() }
     val context = LocalContext.current

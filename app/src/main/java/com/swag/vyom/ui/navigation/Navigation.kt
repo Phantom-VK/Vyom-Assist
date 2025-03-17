@@ -3,12 +3,14 @@ package com.swag.vyom.ui.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.screens.ChatScreen
+import com.swag.vyom.ui.screens.ChatbotScreen
 import com.swag.vyom.ui.screens.CustomerSupportScreen
 import com.swag.vyom.ui.screens.FaceAuth
 import com.swag.vyom.ui.screens.HomeScreen
@@ -75,9 +77,16 @@ fun Navigation(
             )
         }
         composable("chatbot_screen") {
-            ChatScreen(){
+            ChatbotScreen(){
                 navController.navigateUp()
             }
+        }
+        composable(
+            route = "chatting_screen/{ticketId}",
+            arguments = listOf(navArgument("ticketId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val ticketId = backStackEntry.arguments?.getString("ticketId")
+            ChatScreen(conversationId = ticketId!!.toInt())
         }
 
 

@@ -218,7 +218,7 @@ fun CameraScreen(
 
                         recording = controller.startRecording(
                             FileOutputOptions.Builder(outputFile).build(),
-                           AudioConfig.create(true),
+                            AudioConfig.create(true),
                             ContextCompat.getMainExecutor(context),
                         ) { event ->
                             when (event) {

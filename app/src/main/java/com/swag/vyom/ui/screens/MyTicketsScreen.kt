@@ -28,7 +28,7 @@ import com.swag.vyom.viewmodels.TicketViewModel
 @Composable
 fun MyTicketsScreen(
     navController: NavController,
-    ticketViewModel: TicketViewModel
+    ticketViewModel: TicketViewModel,
 ) {
     //TODO Implement Fetch TIckets and pass ticket list
 
@@ -83,7 +83,9 @@ fun MyTicketsScreen(
                                     supportMode = ticket.preferred_support_mode,
                                     status = ticket.status,
                                     subCategory = ticket.sub_category,
-                                    urgencyLevel = ticket.urgency_level
+                                    urgencyLevel = ticket.urgency_level,
+                                    connectionWay = ticket.connection_way,
+                                    navController = navController
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                         }

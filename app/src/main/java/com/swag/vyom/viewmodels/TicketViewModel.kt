@@ -36,13 +36,14 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
                     if (response.success) {
                         val fetchedTickets = response.data.map { ticketResponse ->
                             SupportTicket(
-                                ticket_id = ticketResponse.ticket_id ,
+                                ticket_id = ticketResponse.ticket_id,
                                 ticket_created_at = ticketResponse.ticket_created_at,
                                 category = ticketResponse.category,
                                 preferred_support_mode = ticketResponse.preferred_support_mode,
                                 status = ticketResponse.status,
                                 sub_category = ticketResponse.sub_category,
-                                urgency_level = ticketResponse.urgency_level
+                                urgency_level = ticketResponse.urgency_level,
+                                connection_way = ticketResponse.connection_way
                             )
                         }
                         _tickets.value = fetchedTickets
