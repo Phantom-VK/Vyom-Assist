@@ -13,11 +13,15 @@ import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FaceAuthResponse
 import com.swag.vyom.dataclasses.FaceCompareResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
+import com.swag.vyom.dataclasses.MessageResponse
+import com.swag.vyom.dataclasses.SendMessageRequest
+import com.swag.vyom.dataclasses.SendMessageResponse
 import com.swag.vyom.dataclasses.SupportTicketResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
 import com.swag.vyom.dataclasses.UserImageUploadResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -88,6 +92,15 @@ interface ApiService {
     suspend fun fetchChatHistory(
         @Query("conversation_id") conversationId: Int
     ): ChatResponse
+
+    @POST("send_message.php")
+    fun sendMessage(@Body request: SendMessageRequest): Call<SendMessageResponse>
+
+    @GET("get_messages.php")
+    suspend fun getMessages(
+        @Query("conversation_id") conversationId: Int,
+        @Query("last_message_id") lastMessageId: Int
+    ): MessageResponse
 
 }
 
