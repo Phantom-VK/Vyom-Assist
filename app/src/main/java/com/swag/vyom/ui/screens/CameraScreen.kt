@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -60,9 +61,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -135,6 +138,7 @@ fun CameraScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
+        sheetShape = BottomSheetDefaults.HiddenShape ,
         sheetContent = {
             bitmap?.let {
                 PhotoBottomSheetContent(
@@ -158,6 +162,7 @@ fun CameraScreen(
                     )
                 )
         ) {
+
             CameraPreview(
                 controller = controller,
                 modifier = Modifier.fillMaxSize()
@@ -422,4 +427,14 @@ fun deleteFile(context: Context, uri: Uri?) {
     } else {
         Toast.makeText(context, "File not found", Toast.LENGTH_SHORT).show()
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ShowCameraScreen(){
+    CameraScreen(
+        cameraVM = CameraViewModel(),
+        userID = 0,
+        onMediaCaptured = {uri, isVideo ->}
+    )
 }

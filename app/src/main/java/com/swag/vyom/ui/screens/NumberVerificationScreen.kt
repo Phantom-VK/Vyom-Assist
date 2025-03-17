@@ -213,7 +213,7 @@ fun InteractionPart(
                             onLoadingStateChange(false)
                         }
 
-                        navController.navigate("face_auth")
+                        navController.navigate("login_screen")
                     } else {
                         navController.navigate("register_screen")
                     }

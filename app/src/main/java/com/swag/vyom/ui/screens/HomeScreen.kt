@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.swag.vyom.R
 import com.swag.vyom.SharedPreferencesHelper
+import com.swag.vyom.ui.components.ForYouSection
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
@@ -66,6 +67,7 @@ fun HomeScreen(
                 AccountInfo()
                 QuickTask(navController)
                 Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scrolling
+                ForYouSection()
             }
         }
 

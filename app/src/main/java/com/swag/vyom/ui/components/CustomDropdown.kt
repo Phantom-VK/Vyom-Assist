@@ -111,8 +111,8 @@ fun CustomDropdown(
 fun PreviewCustomDropdown() {
     MaterialTheme {
         CustomDropdown(
-            placeHolder = "Category",
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            placeHolder = "Category"
         )
     }
 }

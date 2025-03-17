@@ -51,6 +51,7 @@ fun checkFaceAndSpoof(context: Context, imagePath: String, onResult: (Boolean) -
         .addOnSuccessListener { faces ->
             if (faces.isNotEmpty()) {
                 Log.d("FaceDetection", "Face detected: ${faces.size} faces found")
+                onResult(true)
 
             } else {
                 Log.d("FaceDetection", "No face detected")

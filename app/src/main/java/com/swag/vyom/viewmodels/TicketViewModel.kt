@@ -99,8 +99,8 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
                 // Upload the file
                 val response = RetrofitClient.instance.uploadUserImage(aadhaar, multipartBody)
                 if (response.success) {
-                    Log.d("UserViewModel", "File Uploaded Successfully: ${response.file_path}")
-                    onCompletion(response.file_path ?: "")
+                    Log.d("UserViewModel", "File Uploaded Successfully: ${response.file_url}")
+                    onCompletion(response.file_url ?: "")
                 } else {
                     Log.e("UserViewModel", "Error uploading file: ${response.msg}")
                     onCompletion("")  // Return empty string on error

@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
@@ -36,7 +35,7 @@ fun FaceDetectionCameraPreview(
     ) -> Unit
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val mainExecutor = remember { ContextCompat.getMainExecutor(context) }
 
@@ -49,7 +48,7 @@ fun FaceDetectionCameraPreview(
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
             .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-            .setMinFaceSize(0.25f)
+            .setMinFaceSize(0.75f)
             .enableTracking()
             .build()
     }
@@ -83,7 +82,7 @@ fun FaceDetectionCameraPreview(
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                    it.surfaceProvider = previewView.surfaceProvider
                 }
 
             // Create analyzer
@@ -181,7 +180,7 @@ private fun processImageForFaceDetection(
 
                 // Smile detection - improved threshold
                 val smileProb = face.smilingProbability ?: 0f
-                val smileDetected = smileProb > 0.7f
+                val smileDetected = smileProb > 0.6f
 
                 // Calculate face distance (approximation based on face size)
                 val faceDistance = 1f / (face.boundingBox.width().toFloat() / image.width.toFloat())

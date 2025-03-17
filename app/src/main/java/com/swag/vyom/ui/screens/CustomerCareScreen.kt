@@ -87,7 +87,7 @@ private fun CustomerSupportTopAppBar(
     TopAppBar(
         title = {
             Text(
-                text = "VyomAI",
+                text = "Customer Support",
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = Color(0xFF0066CC),

@@ -848,7 +848,7 @@ fun SupportModeOption(
         modifier = Modifier
             .size(100.dp)
             .border(
-                2.dp,
+                1.5.dp,
                 color = Color.Black,
                 shape = RoundedCornerShape(10.dp)
             )
@@ -929,7 +929,7 @@ fun AttachmentOptions(
             .height(120.dp)
             .width(120.dp)
             .border(
-                2.dp,
+                1.5.dp,
                 color = Color.Black,
                 shape = RoundedCornerShape(10.dp)
             )

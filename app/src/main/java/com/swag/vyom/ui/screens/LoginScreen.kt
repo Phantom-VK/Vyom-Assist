@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import com.swag.vyom.dataclasses.UserLoginRequest
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomEditText
+import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.components.PasswordEditText
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.viewmodels.AuthViewModel
@@ -41,6 +42,7 @@ fun LoginScreen(
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
     val showDialog = remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     if(showDialog.value){
         CustomDialog(
@@ -50,6 +52,10 @@ fun LoginScreen(
             onConfirm = { showDialog.value = false }
 
         )
+    }
+
+    if(isLoading){
+        CustomLoadingScreen()
     }
 
     Column(
@@ -85,14 +91,17 @@ fun LoginScreen(
 
         Button(
             onClick = {
+                isLoading = true
                 val loginRequest = UserLoginRequest(
                     mobile_number = mobileNo,
                     password = password
                 )
                 authVM.login(loginRequest)
                 if(authVM.loginStatus.value == true){
+                    isLoading = false
                     navController.navigate("home_screen")
                 }else{
+                    isLoading = false
                     // Handle login failure
                     showDialog.value = true
 
