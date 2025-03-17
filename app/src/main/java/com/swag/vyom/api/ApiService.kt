@@ -1,6 +1,7 @@
 package com.swag.vyom.api
 
 import com.swag.vyom.dataclasses.ApiTicketResponse
+import com.swag.vyom.dataclasses.ChatBotResponse
 import com.swag.vyom.dataclasses.ChatRequest
 import com.swag.vyom.dataclasses.ChatResponse
 import com.swag.vyom.dataclasses.Ticket
@@ -83,11 +84,16 @@ interface ApiService {
         @Part image2: MultipartBody.Part
     ): FaceCompareResponse
 
+    @GET("fetch_msg_history.php")
+    suspend fun fetchChatHistory(
+        @Query("conversation_id") conversationId: Int
+    ): ChatResponse
+
 }
 
 interface ChatbotApiService {
     @POST("chat")
     suspend fun sendMessage(
         @Body request: ChatRequest
-    ): ChatResponse
+    ): ChatBotResponse
 }
