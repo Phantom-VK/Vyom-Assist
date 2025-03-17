@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +23,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +57,7 @@ import com.swag.vyom.utils.LivenessState
 import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.CameraViewModel
 import kotlinx.coroutines.delay
+import android.util.Log
 import kotlinx.coroutines.launch
 
 @Composable
@@ -73,10 +77,15 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     var isFaceDetected by remember { mutableStateOf(false) }
     var isAuthComplete by remember { mutableStateOf(false) }
     var showCameraScreen by remember { mutableStateOf(false) }
+
+    // Add loading state variable
+    var isProcessing by remember { mutableStateOf(false) }
+
     val cameraVM by lazy { CameraViewModel() }
     var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
     val pf by lazy { SharedPreferencesHelper(context) }
     var isFaceAuthSuccess by remember { mutableStateOf<Boolean?>(null) }
+    var userProfileImageLink = pf.getUserImageLink()
 
     // Success state handler
     LaunchedEffect(livenessState) {
@@ -126,7 +135,9 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     if (showCameraScreen) {
         Dialog(
             onDismissRequest = {
-                showCameraScreen = false
+                if (!isProcessing) {
+                    showCameraScreen = false
+                }
             }
         ) {
             Box(
@@ -139,28 +150,65 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                     userID = pf.getid()!!,
                     onMediaCaptured = { uri, isVideo ->
                         if (!isVideo) {
-                            // Decode the captured image to Bitmap
-                            capturedBitmap = BitmapFactory.decodeFile(uri.path)
-                            capturedBitmap?.let { bitmap ->
-                                // Perform face authentication
-                                authVM.faceAuth(bitmap, pf.getUserImageLink() ?: "") { isMatch ->
-                                    if (isMatch) {
-                                        // Face authentication successful
-                                        isFaceAuthSuccess = true
-                                        navController.navigate("home_screen") {
-                                            popUpTo("splash_screen") { inclusive = true }
+                            // Close camera screen immediately and show loading screen
+                            showCameraScreen = false
+                            isProcessing = true
+
+                            // Decode the captured image to Bitmap in a coroutine to avoid UI blocking
+                            coroutineScope.launch {
+                                capturedBitmap = BitmapFactory.decodeFile(uri.path)
+                                capturedBitmap?.let { bitmap ->
+                                    // Perform face authentication
+                                    Log.d("AuthViewModel", "User's prof link: $userProfileImageLink")
+                                    authVM.faceAuth(bitmap, userProfileImageLink ?: "") { isMatch ->
+                                        if (isMatch) {
+                                            // Face authentication successful
+                                            isFaceAuthSuccess = true
+                                            navController.navigate("home_screen") {
+                                                popUpTo("splash_screen") { inclusive = true }
+                                            }
+                                        } else {
+                                            // Face authentication failed
+                                            isFaceAuthSuccess = false
+                                            Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
                                         }
-                                    } else {
-                                        // Face authentication failed
-                                        isFaceAuthSuccess = false
-                                        Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
+                                        isProcessing = false // End processing state
                                     }
-                                    showCameraScreen = false // Close camera screen
                                 }
                             }
                         }
                     }
                 )
+            }
+        }
+    }
+
+    // Show loading screen while processing
+    if (isProcessing) {
+        Dialog(onDismissRequest = { /* Do nothing to prevent dismissal while processing */ }) {
+            Surface(
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                color = Color.White
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(64.dp),
+                        color = AppRed,
+                        strokeWidth = 6.dp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Verifying Face...",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
@@ -312,7 +360,7 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(10.dp),
-                enabled = isAuthComplete || livenessState is LivenessState.Failed
+                enabled = (isAuthComplete || livenessState is LivenessState.Failed) && !isProcessing
             ) {
                 Text(
                     text = when {

@@ -72,7 +72,7 @@ class AuthViewModel() : ViewModel() {
         viewModelScope.launch {
             try {
 
-                val requestBody = "https://sggsapp.co.in/vyom/uploads/userfaces/user_678967896789.jpg?t=1741944772".toRequestBody("text/plain".toMediaTypeOrNull())
+                val requestBody = image_link.toRequestBody("text/plain".toMediaTypeOrNull())
                 val imagePart = bitmapToMultipart(bitmap!!, "image2")
                 val response = ApiClient.faceAuthInstance.compareFaces(requestBody, imagePart)
 

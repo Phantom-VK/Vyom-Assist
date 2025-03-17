@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,11 +64,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.dataclasses.ChatMessage
 import com.swag.vyom.viewmodels.ChatViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +76,7 @@ fun ChatScreen(
     onBackClick: () -> Unit = {},
     chatViewModel: ChatViewModel = viewModel()
 ) {
-    val messages by chatViewModel.chatMessages.collectAsState(initial = emptyList())
+    val messages by chatViewModel.chatMessages.collectAsState()
     val context = LocalContext.current
     val sharedPreferencesHelper = remember { SharedPreferencesHelper(context) }
     var messageText by remember { mutableStateOf("") }
@@ -85,11 +85,11 @@ fun ChatScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var isLoading by remember { mutableStateOf(false) }
 
-    // Fetch messages initially
     LaunchedEffect(conversationId) {
         isLoading = true
         try {
             chatViewModel.fetchMessages(conversationId)
+            chatViewModel.startPolling(conversationId)
         } catch (e: Exception) {
             snackbarHostState.showSnackbar("Failed to load messages")
         } finally {
@@ -97,22 +97,15 @@ fun ChatScreen(
         }
     }
 
-    // Poll for new messages
-    LaunchedEffect(conversationId) {
-        while (true) {
-            try {
-                chatViewModel.getMessages(conversationId)
-            } catch (e: Exception) {
-                // Silent failure for polling
-            }
-            delay(3000)
+    LaunchedEffect(messages) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
         }
     }
 
-    // Scroll to bottom when new messages arrive
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
+    DisposableEffect(Unit) {
+        onDispose {
+            chatViewModel.stopPolling()
         }
     }
 
@@ -141,10 +134,7 @@ fun ChatScreen(
             )
         },
         bottomBar = {
-            Surface(
-                tonalElevation = 4.dp,
-                shadowElevation = 4.dp
-            ) {
+            Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,28 +150,19 @@ fun ChatScreen(
                         placeholder = { Text("Type a message...") },
                         shape = RoundedCornerShape(24.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            ),
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
                         maxLines = 4
                     )
-
                     Spacer(modifier = Modifier.width(8.dp))
-
                     FloatingActionButton(
                         onClick = {
                             val senderId = sharedPreferencesHelper.getid() ?: return@FloatingActionButton
                             val receiverId = 1
                             if (messageText.isNotBlank()) {
-                                coroutineScope.launch {
-                                    try {
-                                        chatViewModel.sendMessage(senderId, receiverId, messageText, conversationId)
-                                        messageText = ""
-                                    } catch (e: Exception) {
-                                        snackbarHostState.showSnackbar("Failed to send message")
-                                    }
-                                }
+                                chatViewModel.sendMessage(senderId, receiverId, messageText, conversationId)
+                                messageText = ""
                             }
                         },
                         shape = CircleShape,
@@ -202,9 +183,7 @@ fun ChatScreen(
                 .padding(paddingValues)
         ) {
             if (isLoading && messages.isEmpty()) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -214,8 +193,7 @@ fun ChatScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 16.dp)
                 ) {
-                    items(messages) { message ->
-                        val key = message.id
+                    items(messages, key = { it.id }) { message ->
                         AnimatedVisibility(
                             visible = true,
                             enter = fadeIn(animationSpec = tween(300)) +
