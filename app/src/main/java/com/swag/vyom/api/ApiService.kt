@@ -5,6 +5,9 @@ import com.swag.vyom.dataclasses.ChatResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FaceCompareResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
+import com.swag.vyom.dataclasses.MessageResponse
+import com.swag.vyom.dataclasses.SendMessageRequest
+import com.swag.vyom.dataclasses.SendMessageResponse
 import com.swag.vyom.dataclasses.SupportTicketResponse
 import com.swag.vyom.dataclasses.Ticket
 import com.swag.vyom.dataclasses.UserDetailsResponse

@@ -32,7 +32,7 @@ data class UserDetails(
 
 // Enum for account types
 enum class AccountType {
-    Savings, Current, Salary, FIXED_DEPOSIT, UNKNOWN
+    Savings, Current, Salary, Fixed_Deposit, UNKNOWN
 }
 // Enum for risk profile
 enum class RiskProfile {

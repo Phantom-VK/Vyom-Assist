@@ -15,42 +15,32 @@ class LivenessDetectionService(private val context: Context) {
     private val faceMetricsHistory = mutableListOf<FaceMetrics>()
 
     private var validationCounter = 0
-    private val VALIDATION_THRESHOLD = 2 // Frames required to confirm an action
+    private val VALIDATION_THRESHOLD = 2 // More forgiving validation frames
+    private val BUFFER_FRAMES = 2 // Allow buffer frames before resetting counter
+    private var bufferCounter = 0
 
-    private var smileCounter = 0
-    private var neutralFaceCounter = 0
-    private val SMILE_HOLD_THRESHOLD = 2 // Number of frames smile must be maintained
-    private val NEUTRAL_FACE_RESET_THRESHOLD = 0 // Ensure neutral face before next challenge
+    private val challenges = listOf(LivenessChallenge.TURN_LEFT, LivenessChallenge.TURN_RIGHT)
 
     fun startLivenessDetection() {
         _livenessState.value = LivenessState.Initializing
         faceMetricsHistory.clear()
         validationCounter = 0
-        smileCounter = 0
-        neutralFaceCounter = 0
-
-        // Get all available challenges
-        val allChallenges = LivenessChallenge.entries
-
-        // Randomly select and shuffle challenges
-        val selectedChallenges = allChallenges.shuffled().take(3)
+        bufferCounter = 0
 
         scope.launch {
             delay(1000)
-            _livenessState.value = LivenessState.ChallengeInProgress(0, selectedChallenges)
-            _currentChallenge.value = selectedChallenges.first()
+            _livenessState.value = LivenessState.ChallengeInProgress(0, challenges)
+            _currentChallenge.value = challenges.first()
         }
     }
 
     fun processFaceMetrics(metrics: FaceMetrics) {
         if (!metrics.faceDetected) {
             validationCounter = 0
-            smileCounter = 0
-            neutralFaceCounter = 0
+            bufferCounter = 0
             return
         }
 
-        // Keep history for consistency check
         faceMetricsHistory.add(metrics)
         if (faceMetricsHistory.size > 10) faceMetricsHistory.removeAt(0)
 
@@ -62,35 +52,27 @@ class LivenessDetectionService(private val context: Context) {
             val completed = when (currentChallenge) {
                 LivenessChallenge.TURN_LEFT -> metrics.headEulerAngleY < -15
                 LivenessChallenge.TURN_RIGHT -> metrics.headEulerAngleY > 15
-                LivenessChallenge.SMILE -> {
-                    if (metrics.smileProbability > 0.7f) {
-                        smileCounter++ // Increase smile counter if smiling
-                        neutralFaceCounter = 0 // Reset neutral face counter
-                    } else {
-                        neutralFaceCounter++ // Increase counter if not smiling
-                        if (smileCounter > 0) smileCounter-- // Gradually decrease smile counter
-                    }
-
-                    // Confirm smile only if maintained for enough frames
-                    smileCounter >= SMILE_HOLD_THRESHOLD && neutralFaceCounter >= NEUTRAL_FACE_RESET_THRESHOLD
-                }
             }
 
             if (completed) {
                 validationCounter++
+                bufferCounter = 0 // Reset buffer when action is done
                 if (validationCounter >= VALIDATION_THRESHOLD) {
                     moveToNextChallenge(currentState)
                 }
             } else {
-                validationCounter = max(0, validationCounter - 1) // Gracefully decrease counter
+                bufferCounter++
+                if (bufferCounter > BUFFER_FRAMES) {
+                    validationCounter = 0 // Reset only after buffer frames
+                    bufferCounter = 0
+                }
             }
         }
     }
 
     private fun moveToNextChallenge(currentState: LivenessState.ChallengeInProgress) {
         validationCounter = 0
-        smileCounter = 0
-        neutralFaceCounter = 0
+        bufferCounter = 0
 
         val nextIndex = currentState.currentIndex + 1
         if (nextIndex < currentState.challenges.size) {
@@ -108,16 +90,11 @@ class LivenessDetectionService(private val context: Context) {
     private fun checkFaceConsistency(): Boolean {
         if (faceMetricsHistory.size < 5) return false
 
-        // Check distance consistency
         val distances = faceMetricsHistory.map { it.faceDistance }
         val avgDistance = distances.average()
         val distanceVariance = distances.map { abs(it - avgDistance) }.average()
 
-        // More advanced consistency check
-        val consistentDistance = distanceVariance in 0.05f..0.25f
-
-        // Add additional checks if needed
-        return consistentDistance
+        return distanceVariance in 0.03f..0.3f // Slightly relaxed threshold
     }
 
     fun reset() {
@@ -125,26 +102,19 @@ class LivenessDetectionService(private val context: Context) {
         _currentChallenge.value = null
         faceMetricsHistory.clear()
         validationCounter = 0
-        smileCounter = 0
-        neutralFaceCounter = 0
-
-        // Cancel any ongoing jobs
+        bufferCounter = 0
         scope.coroutineContext.cancelChildren()
     }
-
-    // Helper function to avoid negative values
-    private fun max(a: Int, b: Int): Int = if (a > b) a else b
 }
 
 data class FaceMetrics(
     val faceDetected: Boolean,
     val headEulerAngleY: Float,
-    val smileProbability: Float = 0f,
     val faceDistance: Float
 )
 
 enum class LivenessChallenge {
-    TURN_LEFT, TURN_RIGHT, SMILE
+    TURN_LEFT, TURN_RIGHT
 }
 
 sealed class LivenessState {

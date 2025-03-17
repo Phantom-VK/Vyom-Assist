@@ -48,7 +48,7 @@ fun FaceDetectionCameraPreview(
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
             .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-            .setMinFaceSize(0.75f)
+            .setMinFaceSize(0.25f)
             .enableTracking()
             .build()
     }
@@ -178,9 +178,7 @@ private fun processImageForFaceDetection(
                 val rightEyeOpenProb = face.rightEyeOpenProbability ?: 0f
                 val blinkDetected = (leftEyeOpenProb < 0.5f || rightEyeOpenProb < 0.5f)
 
-                // Smile detection - improved threshold
-                val smileProb = face.smilingProbability ?: 0f
-                val smileDetected = smileProb > 0.6f
+                // Smile detection - removed
 
                 // Calculate face distance (approximation based on face size)
                 val faceDistance = 1f / (face.boundingBox.width().toFloat() / image.width.toFloat())
@@ -191,7 +189,7 @@ private fun processImageForFaceDetection(
                     leftTurn,
                     rightTurn,
                     blinkDetected,
-                    smileDetected,
+                    false, // Smile detection removed
                     faceDistance
                 )
             } else {

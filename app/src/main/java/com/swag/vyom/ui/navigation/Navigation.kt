@@ -45,7 +45,10 @@ fun Navigation(
             NumberVerificationScreen(navController, authVM, userVM, preferencesHelper)
         }
         composable("face_auth") {
-            FaceAuth(navController, authVM)
+            FaceAuth(
+                navController,
+                authVM = authVM
+            )
         }
         composable("home_screen") {
             HomeScreen(navController, userVM = userVM, authVM = authVM, preferencesHelper = preferencesHelper )

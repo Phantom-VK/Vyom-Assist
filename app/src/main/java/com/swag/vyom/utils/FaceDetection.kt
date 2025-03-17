@@ -1,19 +1,11 @@
 package com.swag.vyom.utils
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.core.graphics.get
-import androidx.core.graphics.scale
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import java.io.FileInputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
 
 
 /**
@@ -62,36 +54,4 @@ fun checkFaceAndSpoof(context: Context, imagePath: String, onResult: (Boolean) -
             Log.e("FaceDetection", "Face detection failed", e)
             onResult(false) // Notify failure
         }
-}
-
-
-/**
- * Helper function to convert Uri to Bitmap.
- */
-
-
-
-private fun loadModelFile(context: Context, modelPath: String): MappedByteBuffer {
-    val fileDescriptor = context.assets.openFd(modelPath)
-    val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-    val fileChannel = inputStream.channel
-    return fileChannel.map(FileChannel.MapMode.READ_ONLY, fileDescriptor.startOffset, fileDescriptor.declaredLength)
-}
-
-private fun preprocessBitmap(bitmap: Bitmap): ByteBuffer {
-    // Resize bitmap to model input size
-    val resizedBitmap = bitmap.scale(224, 224)
-
-    // Convert bitmap to ByteBuffer
-    val byteBuffer = ByteBuffer.allocateDirect(224 * 224 * 3 * 4) // Adjust based on model input
-    byteBuffer.order(ByteOrder.nativeOrder())
-    for (y in 0 until 224) {
-        for (x in 0 until 224) {
-            val pixel = resizedBitmap[x, y]
-            byteBuffer.putFloat((pixel shr 16 and 0xFF) / 255.0f) // Red
-            byteBuffer.putFloat((pixel shr 8 and 0xFF) / 255.0f)  // Green
-            byteBuffer.putFloat((pixel and 0xFF) / 255.0f)        // Blue
-        }
-    }
-    return byteBuffer
 }
