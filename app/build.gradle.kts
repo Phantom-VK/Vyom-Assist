@@ -40,6 +40,12 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
+        }
+    }
 }
 
 
@@ -111,5 +117,14 @@ dependencies {
 
 
 
+    implementation("com.google.cloud:google-cloud-dialogflow:4.35.0")
+
+    implementation("com.google.code.gson:gson:2.11.0")
+
+
+    implementation("io.grpc:grpc-okhttp:1.63.0")          // HTTP-based transport
+    implementation("io.grpc:grpc-protobuf:1.63.0")        // Protocol Buffers support
+    implementation("io.grpc:grpc-stub:1.63.0")            // Stub for making calls
+    implementation("javax.annotation:javax.annotation-api:1.3.2") // Required for gRPC
 
 }
