@@ -1,8 +1,10 @@
 package com.swag.vyom.ui.screens
 
+import android.app.Activity
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -54,8 +56,8 @@ fun RegistrationScreen(
     preferencesHelper: SharedPreferencesHelper,
     ticketVM: TicketViewModel
 ) {
-    val configuration = LocalConfiguration.current
     val context = LocalContext.current
+    val activity = context as? Activity
     val id = preferencesHelper.getid()
 
     // Form States
@@ -75,6 +77,9 @@ fun RegistrationScreen(
     var showRegistrationSuccess by remember { mutableStateOf(false) }
 
     val cameraVM = remember { CameraViewModel() }
+    BackHandler {
+        activity?.finish() // Close the app
+    }
 
     // Step 1: Validate form before moving to Step 2
     fun validateForm(): Boolean {

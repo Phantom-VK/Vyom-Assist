@@ -69,7 +69,7 @@ fun ForYouSection() {
         if (recommendedProducts.isNotEmpty()) {
             var currentIndex = 0
             while (true) {
-                delay(1000) // Scroll every 3 seconds
+                delay(1500) // Scroll every 3 seconds
                 currentIndex = (currentIndex + 1) % recommendedProducts.size
                 listState.animateScrollToItem(currentIndex)
             }
@@ -79,7 +79,7 @@ fun ForYouSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(10.dp)
     ) {
         SectionHeader(title = "For You")
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -49,7 +50,6 @@ fun LoginScreen(
     val screenHeight = configuration.screenHeightDp.dp
     val context = LocalContext.current
     val activity = context as? Activity
-
 
 
     var mobileNo by remember { mutableStateOf(preferencesHelper.getmobile() ?: "") }
@@ -135,6 +135,26 @@ fun LoginScreen(
             ) {
                 Text(
                     text = "Login",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            Button(
+                modifier = Modifier
+                    .width(150.dp)
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AppRed),
+                shape = RoundedCornerShape(10.dp),
+                onClick = {
+                    preferencesHelper.clearUserDetails()
+                        activity?.finish()
+
+
+                },
+            ){
+                Text(
+                    text = "Logout",
                     color = Color.White,
                     fontSize = 16.sp
                 )
