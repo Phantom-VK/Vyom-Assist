@@ -42,7 +42,9 @@ class MainActivity : ComponentActivity() {
             android.Manifest.permission.CAMERA,
             android.Manifest.permission.RECORD_AUDIO,
             android.Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-            android.Manifest.permission.READ_EXTERNAL_STORAGE
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.READ_PHONE_STATE
+
         )
     }
 
@@ -63,17 +65,16 @@ class MainActivity : ComponentActivity() {
 
             VyomTheme {
 
-              Navigation(
-                  navController = navController,
-                  ticketViewModel = ticketViewModel,
-                  authVM = authVM,
-                  userVM = userVM,
-                  preferencesHelper = sharedPreferencesHelper
+                Navigation(
+                    navController = navController,
+                    ticketViewModel = ticketViewModel,
+                    authVM = authVM,
+                    userVM = userVM,
+                    preferencesHelper = sharedPreferencesHelper
 
-              )
+                )
 
             }
         }
     }
 }
-

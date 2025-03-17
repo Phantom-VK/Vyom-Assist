@@ -1,7 +1,9 @@
 package com.swag.vyom.ui.screens
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.components.FaceDetectionCameraPreview
@@ -51,6 +54,7 @@ import com.swag.vyom.utils.LivenessState
 import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.CameraViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
@@ -78,6 +82,7 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     LaunchedEffect(livenessState) {
         if (livenessState is LivenessState.Success) {
             isAuthComplete = true
+            showCameraScreen = true // Show camera screen for face capture
         }
     }
 
@@ -85,6 +90,8 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     LaunchedEffect(Unit) {
         livenessService.startLivenessDetection()
     }
+
+    // Handle liveness check failure
     LaunchedEffect(livenessState) {
         if (livenessState is LivenessState.Failed) {
             delay(500)
@@ -110,9 +117,51 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                 val state = livenessState as LivenessState.ChallengeInProgress
                 (state.currentIndex + 1).toFloat() / (state.challenges.size + 1).toFloat()
             }
-
             is LivenessState.Success -> 1f
             is LivenessState.Failed -> 0f // Reset progress on failure
+        }
+    }
+
+    // Show CameraScreen for face capture
+    if (showCameraScreen) {
+        Dialog(
+            onDismissRequest = {
+                showCameraScreen = false
+            }
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+            ) {
+                CameraScreen(
+                    cameraVM = cameraVM,
+                    userID = pf.getid()!!,
+                    onMediaCaptured = { uri, isVideo ->
+                        if (!isVideo) {
+                            // Decode the captured image to Bitmap
+                            capturedBitmap = BitmapFactory.decodeFile(uri.path)
+                            capturedBitmap?.let { bitmap ->
+                                // Perform face authentication
+                                authVM.faceAuth(bitmap, pf.getUserImageLink() ?: "") { isMatch ->
+                                    if (isMatch) {
+                                        // Face authentication successful
+                                        isFaceAuthSuccess = true
+                                        navController.navigate("home_screen") {
+                                            popUpTo("splash_screen") { inclusive = true }
+                                        }
+                                    } else {
+                                        // Face authentication failed
+                                        isFaceAuthSuccess = false
+                                        Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
+                                    }
+                                    showCameraScreen = false // Close camera screen
+                                }
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -217,7 +266,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                         val isCompleted = index < state.currentIndex
                         val isCurrent = index == state.currentIndex
 
-
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
@@ -242,8 +290,15 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             // Authentication button with clearer states
             Button(
                 onClick = {
-//                    showCameraScreen = true
-                    navController.navigate("home_screen")
+                    if (isAuthComplete) {
+                        showCameraScreen = true // Show camera screen for face capture
+                    } else if (livenessState is LivenessState.Failed) {
+                        coroutineScope.launch {
+                            livenessService.reset()
+                            delay(500)
+                            livenessService.startLivenessDetection()
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -257,7 +312,7 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(10.dp),
-                enabled = isAuthComplete
+                enabled = isAuthComplete || livenessState is LivenessState.Failed
             ) {
                 Text(
                     text = when {

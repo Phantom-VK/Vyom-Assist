@@ -71,24 +71,7 @@ class AuthViewModel() : ViewModel() {
     fun faceAuth(bitmap: Bitmap, image_link: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
-//                val requestFile = image.asRequestBody("image/*".toMediaTypeOrNull())
-//                val multipartBody = MultipartBody.Part.createFormData("image2", image.name, requestFile)
-//
-//                Log.d("AuthViewModel", "Sending request with image_url: $image_link and file: ${image.name}")
-//
-//                val response = ApiClient.faceAuthInstance.compareFaces(imageUrl = image_link, image2 = multipartBody)
-//
-//                Log.d("AuthViewModel", "Response received: ${response.toString()}")
-//
-//                if (response.is_match) {
-//                    Log.d("AuthViewModel", "Face Authentication successful")
-//                    onResult(true)
-//                } else {/
-//                    Log.e("AuthViewModel", "Face Authentication failed: ${response.euclidean_distance}")
-//                    onResult(false)
-//                }
 
-//                image_link.toRequestBody("text/plain".toMediaTypeOrNull())
                 val requestBody = "https://sggsapp.co.in/vyom/uploads/userfaces/user_678967896789.jpg?t=1741944772".toRequestBody("text/plain".toMediaTypeOrNull())
                 val imagePart = bitmapToMultipart(bitmap!!, "image2")
                 val response = ApiClient.faceAuthInstance.compareFaces(requestBody, imagePart)

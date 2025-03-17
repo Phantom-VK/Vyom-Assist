@@ -115,8 +115,6 @@ dependencies {
     
     implementation("androidx.biometric:biometric-ktx:1.4.0-alpha02")
 
-
-
     implementation("com.google.cloud:google-cloud-dialogflow:4.35.0")
 
     implementation("com.google.code.gson:gson:2.11.0")

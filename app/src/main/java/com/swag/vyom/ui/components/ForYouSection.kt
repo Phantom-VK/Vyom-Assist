@@ -69,7 +69,7 @@ fun ForYouSection() {
         if (recommendedProducts.isNotEmpty()) {
             var currentIndex = 0
             while (true) {
-                delay(3000) // Scroll every 3 seconds
+                delay(1000) // Scroll every 3 seconds
                 currentIndex = (currentIndex + 1) % recommendedProducts.size
                 listState.animateScrollToItem(currentIndex)
             }
@@ -295,22 +295,22 @@ fun EnhancedProductCard(product: Product) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Apply button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(BankRed)
-                        .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Apply Now",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+//                // Apply button
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(40.dp)
+//                        .clip(RoundedCornerShape(20.dp))
+//                        .background(BankRed)
+//                        .padding(horizontal = 16.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = "Apply Now",
+//                        color = Color.White,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
             }
         }
     }

@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
     private const val BASE_URL = "https://sggsapp.co.in/vyom/"
 
-    private const val BASE_URL2 = "https://flask-api-411792825056.asia-south1.run.app"
+    private const val BASE_URL2 = "https://deepfaceapiservice-662317823212.asia-south1.run.app"
 
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
@@ -24,9 +24,9 @@ object ApiClient {
     }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS) // Increase connection timeout
-        .readTimeout(60, TimeUnit.SECONDS)    // Increase read timeout
-        .writeTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(90, TimeUnit.SECONDS) // Increase connection timeout
+        .readTimeout(90, TimeUnit.SECONDS)    // Increase read timeout
+        .writeTimeout(90, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .build()
 
