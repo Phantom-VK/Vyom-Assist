@@ -4,7 +4,7 @@
     <facet external-system-id="GRADLE" type="android-gradle" name="Android-Gradle">
       <configuration>
         <option name="LAST_SUCCESSFUL_SYNC_AGP_VERSION" value="8.9.0" />
-        <option name="LAST_KNOWN_AGP_VERSION" value="8.9.0" />
+        <option name="LAST_KNOWN_AGP_VERSION" value="8.7.1" />
       </configuration>
     </facet>
     <facet external-system-id="GRADLE" type="android" name="Android">
@@ -16,6 +16,11 @@
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
+  </component>
+  <component name="ModuleClassLoaderOverlays">
+    <paths>
+      <option value="/tmp/overlay6520835366194485913" />
+    </paths>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
     <exclude-output />

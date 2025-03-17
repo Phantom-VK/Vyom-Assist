@@ -5,11 +5,12 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 
-object RetrofitClient {
+object ApiClient {
     private const val BASE_URL = "https://sggsapp.co.in/vyom/"
 
     private const val BASE_URL2 = "https://flask-api-411792825056.asia-south1.run.app"
@@ -39,14 +40,12 @@ object RetrofitClient {
         retrofit.create(ApiService::class.java)
     }
 
-    val faceAuthInstance: ApiService by lazy{
-        val retrofit = Retrofit.Builder()
+    val faceAuthInstance: ApiService by lazy {
+        Retrofit.Builder()
             .baseUrl(BASE_URL2)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
-
-        retrofit.create(ApiService::class.java)
+            .create(ApiService::class.java)
     }
 }
 

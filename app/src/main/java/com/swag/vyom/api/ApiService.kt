@@ -10,6 +10,7 @@ import com.swag.vyom.dataclasses.UserRegistrationRequest
 import com.swag.vyom.dataclasses.UserRegistrationResponse
 import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FaceAuthResponse
+import com.swag.vyom.dataclasses.FaceCompareResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
 import com.swag.vyom.dataclasses.SupportTicketResponse
 import com.swag.vyom.dataclasses.UserDetailsResponse
@@ -74,16 +75,13 @@ interface ApiService {
         @Query("user_id") userId: Int
     ): SupportTicketResponse
 
+
     @Multipart
     @POST("/compare_faces")
-    suspend fun faceAuth(
-        @Part("image_url") imageUrl: String,
+    suspend fun compareFaces(
+        @Part("image_url") imageUrl: RequestBody,
         @Part image2: MultipartBody.Part
-    ): FaceAuthResponse
-
-
-
-
+    ): FaceCompareResponse
 
 }
 

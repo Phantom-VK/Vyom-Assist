@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.arthenica:ffmpeg-kit-full:6.0-2@aar" external-system-id="GRADLE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/2d1ff57f6115c9f07ee54dd8a633dda2/transformed/ffmpeg-kit-full-6.0-2/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/2d1ff57f6115c9f07ee54dd8a633dda2/transformed/ffmpeg-kit-full-6.0-2/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/2d1ff57f6115c9f07ee54dd8a633dda2/transformed/ffmpeg-kit-full-6.0-2/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/a78c6f1f9df4b97307a854eaa5ea9980/transformed/ffmpeg-kit-full-6.0-2/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/a78c6f1f9df4b97307a854eaa5ea9980/transformed/ffmpeg-kit-full-6.0-2/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/a78c6f1f9df4b97307a854eaa5ea9980/transformed/ffmpeg-kit-full-6.0-2/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.arthenica/ffmpeg-kit-full/6.0-2/8ba949bc28219479e7c2385e598d1cb2452df75e/ffmpeg-kit-full-6.0-2-javadoc.jar!/" />

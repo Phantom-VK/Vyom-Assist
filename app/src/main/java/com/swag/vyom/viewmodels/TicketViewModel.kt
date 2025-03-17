@@ -1,13 +1,12 @@
 package com.swag.vyom.viewmodels
 
-import android.R.attr.category
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.swag.vyom.SharedPreferencesHelper
-import com.swag.vyom.api.RetrofitClient
+import com.swag.vyom.api.ApiClient
 import com.swag.vyom.dataclasses.SupportTicket
 import com.swag.vyom.dataclasses.Ticket
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +32,7 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
             try {
                 val userId = preferenceHelper.getid() // Get user ID from preferences
                 if (userId != null) {
-                    val response = RetrofitClient.instance.fetchTicketsByUserId(userId)
+                    val response = ApiClient.instance.fetchTicketsByUserId(userId)
                     if (response.success) {
                         val fetchedTickets = response.data.map { ticketResponse ->
                             SupportTicket(
@@ -69,7 +68,7 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
         viewModelScope.launch {
             try {
                 // Make the API call
-                val response = RetrofitClient.instance.generateTicket(ticket)
+                val response = ApiClient.instance.generateTicket(ticket)
 
                 if (response.success) {
                     val createdTicket = response.data
@@ -97,7 +96,7 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
                 val multipartBody = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
                 // Upload the file
-                val response = RetrofitClient.instance.uploadUserImage(aadhaar, multipartBody)
+                val response = ApiClient.instance.uploadUserImage(aadhaar, multipartBody)
                 if (response.success) {
                     Log.d("UserViewModel", "File Uploaded Successfully: ${response.file_url}")
                     onCompletion(response.file_url ?: "")
@@ -134,7 +133,7 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
                 val multipartBody = MultipartBody.Part.createFormData("file", uploadFile.name, requestFile)
 
                 // Upload the file
-                val response = RetrofitClient.instance.uploadFile(multipartBody)
+                val response = ApiClient.instance.uploadFile(multipartBody)
                 if (response.success) {
                     val data = response.data
                     Log.d("TicketViewModel", "File Uploaded Successfully: ${data.file_url}")
