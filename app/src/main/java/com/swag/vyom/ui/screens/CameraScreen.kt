@@ -18,8 +18,6 @@ import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoRecordEvent
-import androidx.camera.video.VideoSpec
-import androidx.camera.view.CameraController
 import androidx.camera.view.CameraController.IMAGE_CAPTURE
 import androidx.camera.view.CameraController.VIDEO_CAPTURE
 import androidx.camera.view.LifecycleCameraController
@@ -61,7 +59,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -221,7 +218,7 @@ fun CameraScreen(
 
                         recording = controller.startRecording(
                             FileOutputOptions.Builder(outputFile).build(),
-                            AudioConfig.create(true),
+                           AudioConfig.create(true),
                             ContextCompat.getMainExecutor(context),
                         ) { event ->
                             when (event) {

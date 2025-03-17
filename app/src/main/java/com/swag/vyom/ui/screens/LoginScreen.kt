@@ -1,5 +1,8 @@
 package com.swag.vyom.ui.screens
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,9 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.dataclasses.UserLoginRequest
 import com.swag.vyom.ui.components.CustomDialog
 import com.swag.vyom.ui.components.CustomEditText
@@ -35,95 +41,115 @@ import com.swag.vyom.viewmodels.AuthViewModel
 @Composable
 fun LoginScreen(
     navController: NavHostController,
-    authVM: AuthViewModel
+    authVM: AuthViewModel,
+    preferencesHelper : SharedPreferencesHelper
 ) {
-    // Get screen dimensions to make UI responsive
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
-    val showDialog = remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val activity = context as? Activity
 
-    if(showDialog.value){
+
+
+    var mobileNo by remember { mutableStateOf(preferencesHelper.getmobile() ?: "") }
+    var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+
+    // Handle back press to close the app
+    BackHandler {
+        activity?.finish()
+    }
+
+    // Show error dialog
+    if (showDialog) {
         CustomDialog(
             title = "Login Error",
-            message = "Invalid credentials",
-            onDismiss = { showDialog.value = false},
-            onConfirm = { showDialog.value = false }
-
+            message = errorMessage,
+            onDismiss = { showDialog = false },
+            onConfirm = { showDialog = false }
         )
     }
 
-    if(isLoading){
-        CustomLoadingScreen()
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = screenWidth.times(0.06f)),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        RoundedCornerCard(
-            screenWidth,
-            screenHeight
-        )
-
-        var mobileNo by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
-
-        CustomEditText(
-            value = mobileNo,
-            onValueChange = { mobileNo = it },
-            label = "Mobile Number"
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        PasswordEditText(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password"
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Button(
-            onClick = {
-                isLoading = true
-                val loginRequest = UserLoginRequest(
-                    mobile_number = mobileNo,
-                    password = password
-                )
-                authVM.login(loginRequest)
-                if(authVM.loginStatus.value == true){
-                    isLoading = false
-                    navController.navigate("home_screen")
-                }else{
-                    isLoading = false
-                    // Handle login failure
-                    showDialog.value = true
-
-                }
-            },
+    // Main UI
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AppRed),
-            shape = RoundedCornerShape(10.dp),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = screenWidth.times(0.06f)),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Login",
-                color = Color.White,
-                fontSize = 16.sp
+            RoundedCornerCard(screenWidth, screenHeight)
+
+            CustomEditText(
+                value = mobileNo,
+                onValueChange = { mobileNo = it },
+                label = "Mobile Number",
+                keyboardType = KeyboardType.Phone
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            PasswordEditText(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password"
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Button(
+                onClick = {
+                    if (mobileNo.isNotEmpty() && password.isNotEmpty()) {
+                        isLoading = true
+                        val loginRequest = UserLoginRequest(
+                            mobile_number = mobileNo,
+                            password = password
+                        )
+                        authVM.login(loginRequest) { isSuccess ->
+                            isLoading = false
+                            if (isSuccess) {
+                                navController.navigate("home_screen") {
+                                    // Clear back stack to prevent going back to login
+                                    popUpTo("login_screen") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = "Invalid credentials. Please try again."
+                                showDialog = true
+                            }
+                        }
+                    } else {
+                        errorMessage = "Please fill in all fields."
+                        showDialog = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AppRed),
+                shape = RoundedCornerShape(10.dp),
+            ) {
+                Text(
+                    text = "Login",
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            CustomerCareInfo()
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        CustomerCareInfo()
-
-        Spacer(modifier = Modifier.height(24.dp))
+        // Show loading screen
+        if (isLoading) {
+            CustomLoadingScreen()
+        }
     }
 }

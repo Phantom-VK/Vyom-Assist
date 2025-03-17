@@ -1,6 +1,8 @@
 package com.swag.vyom.ui.screens
 
+import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +73,12 @@ fun NumberVerificationScreen(
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
 
-    // Show loading screen while data is being fetched
+    val context = LocalContext.current
+    val activity = context as? Activity
+    BackHandler {
+        activity?.finish() // Close the app
+    }
+
 
 
     Column(
@@ -218,7 +226,9 @@ fun InteractionPart(
                         navController.navigate("register_screen")
                     }
                 } else {
+                    onLoadingStateChange(false)
                     showDialog = true
+
                 }
             }
         }

@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
     private val sharedPreferencesHelper by lazy { SharedPreferencesHelper(this) }
     private val userVM by lazy { UserViewModel(sharedPreferencesHelper) }
     private val ticketViewModel by lazy { TicketViewModel(sharedPreferencesHelper)}
-    private val authVM by lazy {  AuthViewModel(sharedPreferencesHelper)}
+    private val authVM by lazy {  AuthViewModel()}
 
 
     @RequiresApi(Build.VERSION_CODES.R)

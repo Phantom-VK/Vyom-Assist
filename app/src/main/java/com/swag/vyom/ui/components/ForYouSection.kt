@@ -1,13 +1,13 @@
 package com.swag.vyom.ui.components
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.dataclasses.Product
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.utils.getRecommendedProducts
@@ -45,7 +44,7 @@ fun ForYouSection() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyColumn {
+        LazyRow {
 
             recommendedProducts.forEach { product ->
                 item{

@@ -22,7 +22,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import java.io.File
 
-class AuthViewModel(private val preferencesHelper: SharedPreferencesHelper) : ViewModel() {
+class AuthViewModel() : ViewModel() {
 
     private val _registrationStatus = MutableStateFlow<Boolean?>(null)
     val registrationStatus: StateFlow<Boolean?> = _registrationStatus
@@ -50,19 +50,20 @@ class AuthViewModel(private val preferencesHelper: SharedPreferencesHelper) : Vi
         }
     }
 
-    fun login(userLoginRequest: UserLoginRequest) {
+    fun login(userLoginRequest: UserLoginRequest, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
                 val response = ApiClient.instance.login(userLoginRequest)
-                _loginStatus.emit(response.success)
                 if (response.success) {
                     Log.d("AuthViewModel", "User login successful")
+                    onResult(true)
                 } else {
                     Log.e("AuthViewModel", "Login failed: ${response.msg}")
+                    onResult(false)
                 }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Exception during login: ${e.localizedMessage}")
-                _loginStatus.emit(false)
+                onResult(false)
             }
         }
     }

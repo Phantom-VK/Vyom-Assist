@@ -377,9 +377,7 @@ fun RegistrationScreen(
                 // Login option
                 TextButton(
                     onClick = {
-                        navController.navigate("login_screen") {
-                            popUpTo("registration_screen") { inclusive = true }
-                        }
+                        navController.navigate("login_screen")
                     },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {

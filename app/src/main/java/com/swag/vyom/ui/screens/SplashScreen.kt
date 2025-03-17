@@ -1,46 +1,49 @@
 package com.swag.vyom.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.swag.vyom.R
+import com.swag.vyom.SharedPreferencesHelper
 import kotlinx.coroutines.delay
 
-
 @Composable
-fun SplashScreen(navController: NavHostController){
+fun SplashScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val sharedPreferencesHelper = remember { SharedPreferencesHelper(context) }
 
-
-    // Get screen dimensions to make UI responsive
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val screenHeight = configuration.screenHeightDp.dp
-
-    LaunchedEffect(Unit) {
-        delay(3000)
-        navController.navigate("customer_verification") {
-            popUpTo("splash_screen") { inclusive = true }
+    LaunchedEffect(key1 = true) {
+        delay(2000)
+        val userId = sharedPreferencesHelper.getid()
+        if (userId != null) {
+            navController.navigate("login_screen")
+        } else {
+            navController.navigate("customer_verification")
         }
     }
-    Column(
+
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp, 0.dp).verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .background(color = Color.White),
+        contentAlignment = Alignment.Center
     ) {
-        RoundedCornerCard(
-            screenWidth,
-            screenHeight
+        Image(
+            modifier = Modifier.size(150.dp),
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "splash logo"
         )
-        CircularProgressIndicator()
     }
 }

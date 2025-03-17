@@ -56,7 +56,8 @@ fun Navigation(
         }
         composable("login_screen"){
             LoginScreen(navController = navController,
-                authVM = authVM)
+                authVM = authVM,
+                preferencesHelper = preferencesHelper)
         }
         composable("support_screen"){
             CustomerSupportScreen(

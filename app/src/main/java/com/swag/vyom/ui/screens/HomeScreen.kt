@@ -1,5 +1,7 @@
 package com.swag.vyom.ui.screens
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,6 +55,13 @@ fun HomeScreen(
     preferencesHelper: SharedPreferencesHelper
 ) {
 
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    BackHandler {
+        activity?.finish() // Close the app
+    }
+
         // Display the main content once data is fetched
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -67,7 +77,7 @@ fun HomeScreen(
                 AccountInfo()
                 QuickTask(navController)
                 Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scrolling
-//                ForYouSection()
+                ForYouSection()
             }
         }
 
