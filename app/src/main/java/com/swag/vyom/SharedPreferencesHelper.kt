@@ -98,7 +98,7 @@ class SharedPreferencesHelper(context: Context) {
                 "Savings" -> AccountType.Savings
                 "Current" -> AccountType.Current
                 "Salary" -> AccountType.Salary
-                "Fixed Deposit" -> AccountType.FIXED_DEPOSIT
+                "Fixed Deposit" -> AccountType.Fixed_Deposit
                 else -> AccountType.UNKNOWN
             },
             email = sharedPreferences.getString("email", null).toString(),
