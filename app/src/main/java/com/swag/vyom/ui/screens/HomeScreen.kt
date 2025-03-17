@@ -67,7 +67,7 @@ fun HomeScreen(
                 AccountInfo()
                 QuickTask(navController)
                 Spacer(modifier = Modifier.height(16.dp)) // Add bottom padding for scrolling
-                ForYouSection()
+//                ForYouSection()
             }
         }
 

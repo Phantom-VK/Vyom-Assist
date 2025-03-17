@@ -1,12 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: androidx.camera:camera-video:1.5.0-alpha06@aar" external-system-id="GRADLE">
     <ANNOTATIONS>
-      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/0e6248aec32813573fb9ffbc9227702e/transformed/camera-video-1.5.0-alpha06/annotations.zip!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb827dc572995065b07f67db68226a99/transformed/camera-video-1.5.0-alpha06/annotations.zip!/" />
     </ANNOTATIONS>
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/0e6248aec32813573fb9ffbc9227702e/transformed/camera-video-1.5.0-alpha06/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/0e6248aec32813573fb9ffbc9227702e/transformed/camera-video-1.5.0-alpha06/res" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/0e6248aec32813573fb9ffbc9227702e/transformed/camera-video-1.5.0-alpha06/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb827dc572995065b07f67db68226a99/transformed/camera-video-1.5.0-alpha06/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb827dc572995065b07f67db68226a99/transformed/camera-video-1.5.0-alpha06/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb827dc572995065b07f67db68226a99/transformed/camera-video-1.5.0-alpha06/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

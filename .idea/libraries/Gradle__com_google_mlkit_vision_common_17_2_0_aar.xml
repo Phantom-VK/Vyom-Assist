@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.mlkit:vision-common:17.2.0@aar" external-system-id="GRADLE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb589fffab0c13330c89831a3d9b7554/transformed/vision-common-17.2.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/fb589fffab0c13330c89831a3d9b7554/transformed/vision-common-17.2.0/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/9af1f86556b1368b9eddfd10b5374628/transformed/vision-common-17.2.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/9af1f86556b1368b9eddfd10b5374628/transformed/vision-common-17.2.0/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.mlkit/vision-common/17.2.0/cbc0692db75310a824508ca0b7caa5078a65dc84/vision-common-17.2.0-javadoc.jar!/" />

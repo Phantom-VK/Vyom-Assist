@@ -87,7 +87,7 @@ import java.util.Locale
 fun CameraScreen(
     cameraVM: CameraViewModel,
     userID: Int,
-    onMediaCaptured: (Uri, Boolean) -> Unit // Uri and isVideo flag
+    onMediaCaptured:  (Uri, Boolean) -> Unit // Uri and isVideo flag
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
