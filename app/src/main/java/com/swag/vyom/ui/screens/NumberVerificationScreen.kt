@@ -1,8 +1,15 @@
 package com.swag.vyom.ui.screens
 
+import android.Manifest
+import android.R.attr.label
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.swag.vyom.R
 import com.swag.vyom.SharedPreferencesHelper
@@ -54,10 +62,12 @@ import com.swag.vyom.ui.components.CustomLoadingScreen
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.LightSkyBlue
 import com.swag.vyom.ui.theme.SkyBlue
+import com.swag.vyom.utils.getUserSimNumber
 import com.swag.vyom.viewmodels.AuthViewModel
 import com.swag.vyom.viewmodels.UserViewModel
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NumberVerificationScreen(
     navController: NavHostController,
@@ -75,11 +85,49 @@ fun NumberVerificationScreen(
 
     val context = LocalContext.current
     val activity = context as? Activity
+    var simNumbers by remember { mutableStateOf<List<String>>(emptyList()) }
+    var permissionGranted by remember { mutableStateOf(false) }
+    var userSimNumber by remember { mutableStateOf("") }
+
     BackHandler {
         activity?.finish() // Close the app
     }
 
+    // Create permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            permissionGranted = isGranted
+            if (isGranted) {
+                isLoading = true
+                simNumbers = getUserSimNumber(context)
+                if (simNumbers.isNotEmpty()) {
+                    userSimNumber = simNumbers[0]
+                }
+                isLoading = false
+            }
+        }
+    )
 
+    // Check permission status when the screen loads
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_PHONE_NUMBERS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            permissionGranted = true
+            isLoading = true
+            simNumbers = getUserSimNumber(context)
+            if (simNumbers.isNotEmpty()) {
+                userSimNumber = simNumbers[0]
+            }
+            isLoading = false
+        } else {
+            permissionLauncher.launch(Manifest.permission.READ_PHONE_NUMBERS)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -90,8 +138,15 @@ fun NumberVerificationScreen(
     ) {
         RoundedCornerCard(screenWidth, screenHeight)
         Instructions(screenWidth)
-        InteractionPart(navController, authVM, userVM, preferencesHelper) { isLoading = it }
+        InteractionPart(
+            navController = navController,
+            authVM = authVM,
+            userVM = userVM,
+            userSimNumber = userSimNumber,
+            preferencesHelper = preferencesHelper
+        ) { isLoading = it }
     }
+
     if (isLoading) {
         CustomLoadingScreen()
     }
@@ -187,12 +242,20 @@ fun InteractionPart(
     authVM: AuthViewModel,
     userVM: UserViewModel,
     preferencesHelper: SharedPreferencesHelper,
+    userSimNumber: String,
     onLoadingStateChange: (Boolean) -> Unit // Callback to update loading state
 ) {
     var aadharNo by remember { mutableStateOf("") }
-    var mobileNo by remember { mutableStateOf("") }
+    var mobileNo by remember { mutableStateOf(userSimNumber) }
     var showDialog by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+
+    // Update mobileNo when userSimNumber changes
+    LaunchedEffect(userSimNumber) {
+        if (userSimNumber.isNotEmpty()) {
+            mobileNo = userSimNumber
+        }
+    }
 
     LaunchedEffect(authVM.customerStatus) {
         authVM.customerStatus.collect { response ->
@@ -228,7 +291,6 @@ fun InteractionPart(
                 } else {
                     onLoadingStateChange(false)
                     showDialog = true
-
                 }
             }
         }
@@ -284,14 +346,16 @@ fun InteractionPart(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Use a non-editable TextField for mobile number
         CustomEditText(
             value = mobileNo,
-            onValueChange = { mobileNo = it },
-            label = "Mobile Number"
+            onValueChange = {  },
+            label = "Mobile Number",
+            readOnly = true
         )
 
         Text(
-            text = "*Enter mobile number which is connected to your bank account",
+            text = "*Please ensure that mobile number has SIM in Slot1, whose number is conected to bank",
             textAlign = TextAlign.Center,
             fontSize = 11.sp,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -302,7 +366,7 @@ fun InteractionPart(
                 coroutineScope.launch {
                     // Start loading
                     onLoadingStateChange(true)
-                    authVM.checkCustomer(mobileNo, aadharNo)
+                    authVM.checkCustomer(mobileNo.removePrefix("+91"), aadharNo)
                 }
             },
             modifier = Modifier
@@ -327,6 +391,7 @@ fun InteractionPart(
         CustomerCareInfo()
     }
 }
+
 
 
 @Composable

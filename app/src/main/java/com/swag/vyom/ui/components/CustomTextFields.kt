@@ -49,7 +49,8 @@ fun CustomEditText(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    iserror: Boolean = false
+    iserror: Boolean = false,
+    readOnly: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -63,6 +64,7 @@ fun CustomEditText(
         keyboardOptions = KeyboardOptions(
             keyboardType = keyboardType
         ),
-        isError = iserror
+        isError = iserror,
+        readOnly = readOnly
     )
 }
