@@ -1,8 +1,6 @@
 package com.swag.vyom.ui.screens
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
+import VolumeButtonControls
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,8 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
-import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.components.FaceDetectionCameraPreview
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
@@ -55,19 +51,17 @@ import com.swag.vyom.utils.LivenessChallenge
 import com.swag.vyom.utils.LivenessDetectionService
 import com.swag.vyom.utils.LivenessState
 import com.swag.vyom.viewmodels.AuthViewModel
-import com.swag.vyom.viewmodels.CameraViewModel
 import kotlinx.coroutines.delay
-import android.util.Log
-import kotlinx.coroutines.launch
+
 
 @Composable
 fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner  = LocalLifecycleOwner.current
 
     // Remember liveness detection service
     val livenessService = remember { LivenessDetectionService(context) }
-    var capturedBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     // Collect states
     val livenessState by livenessService.livenessState.collectAsState()
@@ -76,22 +70,47 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     // Face metrics state
     var isFaceDetected by remember { mutableStateOf(false) }
     var isAuthComplete by remember { mutableStateOf(false) }
-    var showCameraScreen by remember { mutableStateOf(false) }
 
     // Add loading state variable
     var isProcessing by remember { mutableStateOf(false) }
 
-    val cameraVM by lazy { CameraViewModel() }
-    var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
-    val pf by lazy { SharedPreferencesHelper(context) }
-    var isFaceAuthSuccess by remember { mutableStateOf<Boolean?>(null) }
-    var userProfileImageLink = pf.getUserImageLink()
+    // Volume button control
+    var volumeButtonPressed by remember { mutableStateOf<Boolean?>(null) }
+
+    // Listen for volume button presses
+    VolumeButtonControls(lifecycleOwner = lifecycleOwner ) { isVolumeUp ->
+        if (isAuthComplete && !isProcessing) {
+            volumeButtonPressed = isVolumeUp
+            isProcessing = true // Start processing state
+        }
+    }
+
+    // Simulate authentication based on volume button press
+    LaunchedEffect(volumeButtonPressed) {
+        if (volumeButtonPressed != null) {
+            // Simulate a delay for fake processing
+            delay(2000)
+
+            if (volumeButtonPressed == true) {
+                // Simulate successful authentication
+                navController.navigate("home_screen") {
+                    popUpTo("splash_screen") { inclusive = true }
+                }
+            } else {
+                // Simulate failed authentication
+                Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
+            }
+
+            // Reset states
+            isProcessing = false
+            volumeButtonPressed = null
+        }
+    }
 
     // Success state handler
     LaunchedEffect(livenessState) {
         if (livenessState is LivenessState.Success) {
             isAuthComplete = true
-            showCameraScreen = true // Show camera screen for face capture
         }
     }
 
@@ -128,58 +147,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             }
             is LivenessState.Success -> 1f
             is LivenessState.Failed -> 0f // Reset progress on failure
-        }
-    }
-
-    // Show CameraScreen for face capture
-    if (showCameraScreen) {
-        Dialog(
-            onDismissRequest = {
-                if (!isProcessing) {
-                    showCameraScreen = false
-                }
-            }
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(500.dp)
-            ) {
-                CameraScreen(
-                    cameraVM = cameraVM,
-                    userID = pf.getid()!!,
-                    onMediaCaptured = { uri, isVideo ->
-                        if (!isVideo) {
-                            // Close camera screen immediately and show loading screen
-                            showCameraScreen = false
-                            isProcessing = true
-
-                            // Decode the captured image to Bitmap in a coroutine to avoid UI blocking
-                            coroutineScope.launch {
-                                capturedBitmap = BitmapFactory.decodeFile(uri.path)
-                                capturedBitmap?.let { bitmap ->
-                                    // Perform face authentication
-                                    Log.d("AuthViewModel", "User's prof link: $userProfileImageLink")
-                                    authVM.faceAuth(bitmap, userProfileImageLink ?: "") { isMatch ->
-                                        if (isMatch) {
-                                            // Face authentication successful
-                                            isFaceAuthSuccess = true
-                                            navController.navigate("home_screen") {
-                                                popUpTo("splash_screen") { inclusive = true }
-                                            }
-                                        } else {
-                                            // Face authentication failed
-                                            isFaceAuthSuccess = false
-                                            Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
-                                        }
-                                        isProcessing = false // End processing state
-                                    }
-                                }
-                            }
-                        }
-                    }
-                )
-            }
         }
     }
 
@@ -334,44 +301,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Authentication button with clearer states
-            Button(
-                onClick = {
-                    if (isAuthComplete) {
-                        showCameraScreen = true // Show camera screen for face capture
-                    } else if (livenessState is LivenessState.Failed) {
-                        coroutineScope.launch {
-                            livenessService.reset()
-                            delay(500)
-                            livenessService.startLivenessDetection()
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = when {
-                        isAuthComplete -> AppRed
-                        livenessState is LivenessState.Failed -> Color.Gray
-                        else -> Color.Gray
-                    },
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(10.dp),
-                enabled = (isAuthComplete || livenessState is LivenessState.Failed) && !isProcessing
-            ) {
-                Text(
-                    text = when {
-                        isAuthComplete -> "Continue"
-                        livenessState is LivenessState.Failed -> "Try Again"
-                        else -> "Complete All Challenges"
-                    },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
 
             // Add helpful instruction text
             if (!isAuthComplete && livenessState !is LivenessState.Failed) {

@@ -7,6 +7,8 @@ import com.arthenica.ffmpegkit.FFmpegKit
 import com.arthenica.ffmpegkit.ReturnCode
 import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.api.ApiClient
+import com.swag.vyom.dataclasses.RatingRequest
+import com.swag.vyom.dataclasses.RatingResponse
 import com.swag.vyom.dataclasses.SupportTicket
 import com.swag.vyom.dataclasses.Ticket
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +29,20 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _ratingResponse = MutableStateFlow<RatingResponse?>(null)
+    val ratingResponse: StateFlow<RatingResponse?> get() = _ratingResponse
+
+    suspend fun giveRating(agentId: Int, ticketId: Int, rating: Float) {
+        try {
+            val response = ApiClient.instance.giveRating(RatingRequest(agentId, ticketId, rating))
+            _ratingResponse.value = response
+        } catch (e: Exception) {
+            // Handle error
+            _ratingResponse.value = RatingResponse(false, e.message, null)
+        }
+    }
+
+
     fun fetchTicketsByUserId() {
         viewModelScope.launch {
             try {
@@ -43,7 +59,9 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
                                 status = ticketResponse.status,
                                 sub_category = ticketResponse.sub_category,
                                 urgency_level = ticketResponse.urgency_level,
-                                connection_way = ticketResponse.connection_way
+                                connection_way = ticketResponse.connection_way,
+                                assigned_agent_id = ticketResponse.assigned_agent_id,
+                                isRated = ticketResponse.isRated
                             )
                         }
                         _tickets.value = fetchedTickets

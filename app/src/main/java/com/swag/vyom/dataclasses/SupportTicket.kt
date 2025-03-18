@@ -8,7 +8,9 @@ data class SupportTicket(
     val status: String,
     val sub_category: String,
     val urgency_level: String,
-    val connection_way: String
+    val connection_way: String,
+    val assigned_agent_id:Int?,
+    val isRated:Int
 )
 
 

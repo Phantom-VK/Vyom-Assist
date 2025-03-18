@@ -6,6 +6,8 @@ import com.swag.vyom.dataclasses.CheckCustomerResponse
 import com.swag.vyom.dataclasses.FaceCompareResponse
 import com.swag.vyom.dataclasses.FileUploadResponse
 import com.swag.vyom.dataclasses.MessageResponse
+import com.swag.vyom.dataclasses.RatingRequest
+import com.swag.vyom.dataclasses.RatingResponse
 import com.swag.vyom.dataclasses.SendMessageRequest
 import com.swag.vyom.dataclasses.SendMessageResponse
 import com.swag.vyom.dataclasses.SupportTicketResponse
@@ -88,6 +90,12 @@ interface ApiService {
     suspend fun fetchChatHistory(
         @Query("conversation_id") conversationId: Int
     ): ChatResponse
+
+    @POST("user/give_rating.php")
+    suspend fun giveRating(
+        @Body request: RatingRequest
+    ): RatingResponse
+
 
     @POST("send_message.php")
     fun sendMessage(@Body request: SendMessageRequest): Call<SendMessageResponse>

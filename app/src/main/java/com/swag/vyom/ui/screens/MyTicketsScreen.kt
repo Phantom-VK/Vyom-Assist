@@ -30,7 +30,6 @@ fun MyTicketsScreen(
     navController: NavController,
     ticketViewModel: TicketViewModel,
 ) {
-    //TODO Implement Fetch TIckets and pass ticket list
 
     LaunchedEffect(key1 = true) {
         ticketViewModel.fetchTicketsByUserId()
@@ -43,12 +42,10 @@ fun MyTicketsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-
                 title = { Text(text = "My Tickets") },
-                        navigationIcon = {
+                navigationIcon = {
                     IconButton(onClick = {
                         navController.navigateUp()
-
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -58,7 +55,6 @@ fun MyTicketsScreen(
                 }
             )
         },
-
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -74,20 +70,23 @@ fun MyTicketsScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    tickets.forEach {  ticket ->
+                    tickets.forEach { ticket ->
                         item {
-                                SupportTicketItem(
-                                    ticketId = ticket.ticket_id.toString(),
-                                    dateTime = ticket.ticket_created_at,
-                                    category = ticket.category,
-                                    supportMode = ticket.preferred_support_mode,
-                                    status = ticket.status,
-                                    subCategory = ticket.sub_category,
-                                    urgencyLevel = ticket.urgency_level,
-                                    connectionWay = ticket.connection_way,
-                                    navController = navController
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
+                            SupportTicketItem(
+                                ticketId = ticket.ticket_id.toString(),
+                                dateTime = ticket.ticket_created_at,
+                                category = ticket.category,
+                                supportMode = ticket.preferred_support_mode,
+                                status = ticket.status,
+                                subCategory = ticket.sub_category,
+                                urgencyLevel = ticket.urgency_level,
+                                connectionWay = ticket.connection_way,
+                                navController = navController,
+                                assignedAgentId = ticket.assigned_agent_id ?: 1,
+                                isRated = ticket.isRated,
+                                viewModel = ticketViewModel
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 }

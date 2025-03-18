@@ -113,7 +113,7 @@ fun LoginScreen(
                         authVM.login(loginRequest) { isSuccess ->
                             isLoading = false
                             if (isSuccess) {
-                                navController.navigate("home_screen") {
+                                navController.navigate("face_auth") {
                                     // Clear back stack to prevent going back to login
                                     popUpTo("login_screen") { inclusive = true }
                                 }
