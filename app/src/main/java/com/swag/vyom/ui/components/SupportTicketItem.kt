@@ -1,6 +1,7 @@
 package com.swag.vyom.ui.components
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -164,7 +165,16 @@ fun SupportTicketItem(
                         if (supportMode == "Text Message") {
                             navController.navigate("chatting_screen/$ticketId")
                         } else if (supportMode == "Video Call") {
-                            // TODO: Handle Video Call
+
+                            if(connectionWay.isEmpty() || connectionWay.isBlank()){
+                                Toast.makeText(context,"No meet scheduled yet!", Toast.LENGTH_LONG).show()
+                            }else {
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    connectionWay.toUri()
+                                )
+                                context.startActivity(intent)
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AppRed),
