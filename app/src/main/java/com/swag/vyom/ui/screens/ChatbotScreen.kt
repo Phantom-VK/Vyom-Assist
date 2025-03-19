@@ -247,7 +247,8 @@ suspend fun sendMessageToDialogflow(query: String, context: android.content.Cont
             val response = sessionsClient.detectIntent(request)
             response.queryResult.fulfillmentText
         } catch (e: Exception) {
-            "Sorry, I couldn't process your request. Please try again later."
+            "Error: ${e.message}" +
+                    "Localised Message: ${e.localizedMessage}"
         }
     }
 }

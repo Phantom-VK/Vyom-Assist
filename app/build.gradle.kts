@@ -107,14 +107,10 @@ dependencies {
     implementation("androidx.camera:camera-video:${camerax_version}")
     // If you want to additionally use the CameraX View class
     implementation("androidx.camera:camera-view:${camerax_version}")
-    implementation("org.tensorflow:tensorflow-lite:2.8.0")
 
 
     implementation ("com.google.mlkit:face-detection:16.1.7")
 
-    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
-    
-    implementation("androidx.biometric:biometric-ktx:1.4.0-alpha02")
 
     implementation("com.google.cloud:google-cloud-dialogflow:4.35.0")
 

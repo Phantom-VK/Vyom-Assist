@@ -149,18 +149,6 @@ fun getRecommendedProducts(sharedPreferences: SharedPreferences): List<Product> 
             )
         }
 //Allocated high to nnull
-        null -> {
-            recommendedProducts.add(
-                Product(
-                    id = 10,
-                    name = "Equity Fund",
-                    category = "Investment",
-                    description = "Invest in high-growth stocks for maximum returns.",
-                    eligibilityCriteria = "High Risk Profile",
-                    interestRate = null
-                )
-            )
-        }
     }
 
     // Rule 4: Based on Total Assets

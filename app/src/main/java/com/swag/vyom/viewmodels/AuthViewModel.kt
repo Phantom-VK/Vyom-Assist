@@ -121,7 +121,7 @@ class AuthViewModel() : ViewModel() {
                 _customerStatus.emit(response)
 
                 if (response.success) {
-                    if (response.data?.registered == true) {
+                    if (response.data!!.registered) {
                         Log.d("AuthViewModel", "Redirect to Login Page")
                     } else {
                         Log.d("AuthViewModel", "Redirect to Register Page")

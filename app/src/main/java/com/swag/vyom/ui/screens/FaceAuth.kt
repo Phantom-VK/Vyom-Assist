@@ -1,7 +1,5 @@
 package com.swag.vyom.ui.screens
 
-import VolumeButtonControls
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -58,7 +56,7 @@ import kotlinx.coroutines.delay
 fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner  = LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     // Remember liveness detection service
     val livenessService = remember { LivenessDetectionService(context) }
@@ -74,46 +72,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     // Add loading state variable
     var isProcessing by remember { mutableStateOf(false) }
 
-    // Volume button control
-    var volumeButtonPressed by remember { mutableStateOf<Boolean?>(null) }
-
-    // Listen for volume button presses
-    VolumeButtonControls(lifecycleOwner = lifecycleOwner ) { isVolumeUp ->
-        if (isAuthComplete && !isProcessing) {
-            volumeButtonPressed = isVolumeUp
-            isProcessing = true // Start processing state
-        }
-    }
-
-    // Simulate authentication based on volume button press
-    LaunchedEffect(volumeButtonPressed) {
-        if (volumeButtonPressed != null) {
-            // Simulate a delay for fake processing
-            delay(2000)
-
-            if (volumeButtonPressed == true) {
-                // Simulate successful authentication
-                navController.navigate("home_screen") {
-                    popUpTo("splash_screen") { inclusive = true }
-                }
-            } else {
-                // Simulate failed authentication
-                Toast.makeText(context, "Face Authentication Failed", Toast.LENGTH_LONG).show()
-            }
-
-            // Reset states
-            isProcessing = false
-            volumeButtonPressed = null
-        }
-    }
-
-    // Success state handler
-    LaunchedEffect(livenessState) {
-        if (livenessState is LivenessState.Success) {
-            isAuthComplete = true
-        }
-    }
-
     // Start liveness detection on first composition
     LaunchedEffect(Unit) {
         livenessService.startLivenessDetection()
@@ -125,6 +83,19 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             delay(500)
             livenessService.reset()
             livenessService.startLivenessDetection()
+        }
+    }
+
+    // Success state handler and auto-navigation
+    LaunchedEffect(livenessState) {
+        if (livenessState is LivenessState.Success) {
+            isAuthComplete = true
+            isProcessing = true
+            // Add a small delay to show the success message before navigating
+            delay(1000)
+            navController.navigate("home_screen") {
+                popUpTo("splash_screen") { inclusive = true }
+            }
         }
     }
 

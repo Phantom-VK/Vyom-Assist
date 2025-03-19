@@ -3,8 +3,6 @@ package com.swag.vyom.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
 import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.api.ApiClient
 import com.swag.vyom.dataclasses.RatingRequest
@@ -132,20 +130,15 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
 
 
     fun uploadFile(
-        file: File,
+        uploadFile: File,
         isVideo: Boolean,
         onCompletion: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                Log.d("TicketViewModel", "File size: ${file.length()}")
-                // Compress video if it's a large file
-                val uploadFile = if (isVideo && file.length() > 10 * 1024 * 1024 ) { // 10 MB
-                    // Compress video before upload
-                    compressVideo(file) ?: file // Fallback to original file if compression fails
-                } else {
-                    file
-                }
+                Log.d("TicketViewModel", "File size: ${uploadFile.length()}")
+
+
 
                 // Prepare the file for upload
                 val requestFile = uploadFile.asRequestBody("multipart/form-data".toMediaTypeOrNull())
@@ -167,39 +160,6 @@ class TicketViewModel(private val preferenceHelper: SharedPreferencesHelper): Vi
             }
         }
     }
-
-
-    // Function to compress video using FFmpegKit
-    private fun compressVideo(file: File): File? {
-
-        Log.d("TicketViewModel", "File size: ${file.length()}" +
-                "Inside File Compression")
-            val outputFile = File(file.parent, "compressed_${file.name}")
-
-            try {
-                // FFmpeg command to compress the video
-                val command = "-i ${file.absolutePath} -vf scale=640:360 -c:v libx264 -crf 28 ${outputFile.absolutePath}"
-
-                // Execute FFmpeg command synchronously
-                val session = FFmpegKit.execute(command)
-
-                // Check if the command was successful
-                if (ReturnCode.isSuccess(session.returnCode)) {
-                    Log.d("VideoCompression", "Video compressed successfully: ${outputFile.absolutePath}")
-                    outputFile // Return the compressed file
-                } else {
-                    Log.e("VideoCompression", "Video compression failed: ${session.failStackTrace}")
-                    null // Return null if compression fails
-                }
-            } catch (e: Exception) {
-                Log.e("VideoCompression", "Exception during video compression: ${e.message}")
-                null // Return null if an exception occurs
-            }
-
-        return file
-
-    }
-
 
 
     // New suspend function that returns a result
