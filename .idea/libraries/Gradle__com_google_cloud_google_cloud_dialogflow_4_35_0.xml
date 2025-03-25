@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.cloud:google-cloud-dialogflow:4.35.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.google.cloud" artifactId="google-cloud-dialogflow" version="4.35.0" baseVersion="4.35.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-dialogflow/4.35.0/e820da9ae59aa89cc6fc3320c91615e24ed4bf8/google-cloud-dialogflow-4.35.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-dialogflow/4.35.0/db78099b693f1c3e0760b003c2c21d23c9b4548d/google-cloud-dialogflow-4.35.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-dialogflow/4.35.0/6dc1b663335b4d1b7b709152bd58c9dfbf91047e/google-cloud-dialogflow-4.35.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

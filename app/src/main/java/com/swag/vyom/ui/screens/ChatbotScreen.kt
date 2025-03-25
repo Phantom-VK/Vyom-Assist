@@ -1,5 +1,6 @@
 package com.swag.vyom.ui.screens
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -247,8 +248,12 @@ suspend fun sendMessageToDialogflow(query: String, context: android.content.Cont
             val response = sessionsClient.detectIntent(request)
             response.queryResult.fulfillmentText
         } catch (e: Exception) {
-            "Error: ${e.message}" +
-                    "Localised Message: ${e.localizedMessage}"
+            val errorMessage = "Error: ${e.message}\n" +
+                    "Localised Message: ${e.localizedMessage}\n" +
+                    "Cause: ${e.cause}\n" +
+                    "StackTrace: ${e.stackTraceToString()}"
+            Log.e("DialogflowError", errorMessage)
+            "Error in chatbot communication"
         }
     }
 }

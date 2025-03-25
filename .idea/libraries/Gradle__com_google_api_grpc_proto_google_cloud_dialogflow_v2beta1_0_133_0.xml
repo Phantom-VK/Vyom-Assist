@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.api.grpc:proto-google-cloud-dialogflow-v2beta1:0.133.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.google.api.grpc" artifactId="proto-google-cloud-dialogflow-v2beta1" version="0.133.0" baseVersion="0.133.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/proto-google-cloud-dialogflow-v2beta1/0.133.0/21e4c2f08df34ef09158b4f8f0896ac361a773c1/proto-google-cloud-dialogflow-v2beta1-0.133.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/proto-google-cloud-dialogflow-v2beta1/0.133.0/d8cdd71d2aa022f59a8260226de3ad81c2b300c4/proto-google-cloud-dialogflow-v2beta1-0.133.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/proto-google-cloud-dialogflow-v2beta1/0.133.0/2431ab12efc3c809fca9f2c9cabd4cff4030da0e/proto-google-cloud-dialogflow-v2beta1-0.133.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

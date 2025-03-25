@@ -276,7 +276,6 @@ fun InteractionPart(
                         ) { response ->
                             if (response.success) {
                                 userVM.saveUserDetails(response.data)
-                                Log.d("NumberVerificationScreen", "Fetched data successfully: ${response.data}")
                             } else {
                                 Log.e("NumberVerificationScreen", "Failed to fetch user details: ${response.msg}")
                             }

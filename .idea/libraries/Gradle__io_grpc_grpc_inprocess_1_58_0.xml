@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: io.grpc:grpc-inprocess:1.58.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.grpc" artifactId="grpc-inprocess" version="1.58.0" baseVersion="1.58.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-inprocess/1.58.0/865aa5dab01ca5fd25d5069b4c42e8b86cfd093d/grpc-inprocess-1.58.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-inprocess/1.58.0/15c2929c23378f32c4715a02a27d960ee1c85f30/grpc-inprocess-1.58.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-inprocess/1.58.0/709e784c151c7de27ac2bc02bc46c5734c9e3936/grpc-inprocess-1.58.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

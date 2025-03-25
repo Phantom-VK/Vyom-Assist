@@ -536,47 +536,6 @@ private fun updateDateTime(selectedDate: Long?, selectedTime: LocalTime?, onTime
     }
 }
 
-@Composable
-fun AttachmentOptions(
-    icon: Int,
-    text: String,
-    textSize: TextUnit = 14.sp,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = Modifier
-            .height(120.dp)
-            .width(120.dp)
-            .border(
-                1.5.dp,
-                color = Color.Black,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = text,
-                modifier = Modifier.size(40.dp)
-            )
-
-            Text(
-                text = text,
-                fontSize = textSize,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
 
 @RequiresApi(S)
 @Preview(showBackground = true)
