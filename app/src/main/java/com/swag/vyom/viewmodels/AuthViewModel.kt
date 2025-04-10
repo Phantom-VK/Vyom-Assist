@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -72,11 +73,20 @@ class AuthViewModel() : ViewModel() {
         viewModelScope.launch {
             try {
 
-                val requestBody = image_link.toRequestBody("text/plain".toMediaTypeOrNull())
-                val imagePart = bitmapToMultipart(bitmap!!, "image2")
-                val response = ApiClient.faceAuthInstance.compareFaces(requestBody, imagePart)
 
-                withContext(Dispatchers.Main) {
+                // Convert bitmap to multipart
+                val requestBody = image_link.toRequestBody("text/plain".toMediaTypeOrNull())
+                val imagePart = bitmapToMultipart(bitmap, "image2")
+
+                // Execute with timeout handling
+                val response = withTimeoutOrNull(120_000) { // 120 seconds timeout
+                    ApiClient.faceAuthInstance.compareFaces(requestBody, imagePart)
+                }
+
+                if (response == null) {
+                    Log.e("AuthViewModel", "Face Authentication timed out")
+                    onResult(false)
+                } else {
                     if (response.is_match) {
                         Log.d("AuthViewModel", "Face Authentication successful")
                         onResult(true)
@@ -91,6 +101,7 @@ class AuthViewModel() : ViewModel() {
             }
         }
     }
+
 
     private fun bitmapToMultipart(bitmap: Bitmap, paramName: String): MultipartBody.Part {
         val stream = ByteArrayOutputStream()

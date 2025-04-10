@@ -12,8 +12,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     private const val BASE_URL = "https://sggsapp.co.in/vyom/"
-
-    private const val BASE_URL2 = "https://deepfaceapiservice-662317823212.asia-south1.run.app"
+    private const val FACE_AUTH_BASE_URL = "https://deepfaceapi-847981499984.asia-south1.run.app"
 
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
@@ -23,27 +22,42 @@ object ApiClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    // Custom OkHttpClient for face authentication with longer timeouts
+    private val faceAuthHttpClient = OkHttpClient.Builder()
+        .connectTimeout(120, TimeUnit.SECONDS)
+        .readTimeout(120, TimeUnit.SECONDS)
+        .writeTimeout(120, TimeUnit.SECONDS)
+        .addInterceptor(loggingInterceptor)
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("Connection", "keep-alive")
+                .build()
+            chain.proceed(request)
+        }
+        .build()
+
+    // Regular client for other API calls
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(90, TimeUnit.SECONDS) // Increase connection timeout
-        .readTimeout(90, TimeUnit.SECONDS)    // Increase read timeout
-        .writeTimeout(90, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .build()
 
     val instance: ApiService by lazy {
-        val retrofit = Retrofit.Builder()
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(okHttpClient)
             .build()
-
-        retrofit.create(ApiService::class.java)
+            .create(ApiService::class.java)
     }
 
     val faceAuthInstance: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL2)
+            .baseUrl(FACE_AUTH_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            .client(faceAuthHttpClient) // Use the custom client with longer timeouts
             .build()
             .create(ApiService::class.java)
     }

@@ -1,5 +1,9 @@
 package com.swag.vyom.ui.screens
 
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.telecom.VideoProfile.isVideo
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import com.swag.vyom.SharedPreferencesHelper
 import com.swag.vyom.ui.components.FaceDetectionCameraPreview
 import com.swag.vyom.ui.theme.AppRed
 import com.swag.vyom.ui.theme.SkyBlue
@@ -49,7 +56,10 @@ import com.swag.vyom.utils.LivenessChallenge
 import com.swag.vyom.utils.LivenessDetectionService
 import com.swag.vyom.utils.LivenessState
 import com.swag.vyom.viewmodels.AuthViewModel
+import com.swag.vyom.viewmodels.CameraViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -57,73 +67,109 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val sharedPreferencesHelper = remember { SharedPreferencesHelper(context) }
 
-    // Remember liveness detection service
+    // Liveness detection service
     val livenessService = remember { LivenessDetectionService(context) }
-
-    // Collect states
     val livenessState by livenessService.livenessState.collectAsState()
     val currentChallenge by livenessService.currentChallenge.collectAsState()
 
-    // Face metrics state
+    // State variables
     var isFaceDetected by remember { mutableStateOf(false) }
     var isAuthComplete by remember { mutableStateOf(false) }
-
-    // Add loading state variable
     var isProcessing by remember { mutableStateOf(false) }
+    var showCameraScreen by remember { mutableStateOf(false) }
+    var capturedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     // Start liveness detection on first composition
     LaunchedEffect(Unit) {
         livenessService.startLivenessDetection()
     }
 
-    // Handle liveness check failure
+    // Handle liveness check states
     LaunchedEffect(livenessState) {
-        if (livenessState is LivenessState.Failed) {
-            delay(500)
-            livenessService.reset()
-            livenessService.startLivenessDetection()
-        }
-    }
-
-    // Success state handler and auto-navigation
-    LaunchedEffect(livenessState) {
-        if (livenessState is LivenessState.Success) {
-            isAuthComplete = true
-            isProcessing = true
-            // Add a small delay to show the success message before navigating
-            delay(1000)
-            navController.navigate("home_screen") {
-                popUpTo("splash_screen") { inclusive = true }
-            }
-        }
-    }
-
-    // Challenge instructions
-    val getChallengeText = { challenge: LivenessChallenge? ->
-        when (challenge) {
-            LivenessChallenge.TURN_LEFT -> "Please turn your head to the right"
-            LivenessChallenge.TURN_RIGHT -> "Please turn your head to the left"
-            null -> "Preparing verification system..."
-        }
-    }
-
-    // UI Progress calculation
-    val getProgressValue = {
         when (livenessState) {
-            is LivenessState.Initializing -> 0.1f
-            is LivenessState.ChallengeInProgress -> {
-                val state = livenessState as LivenessState.ChallengeInProgress
-                (state.currentIndex + 1).toFloat() / (state.challenges.size + 1).toFloat()
+            is LivenessState.Failed -> {
+                delay(500)
+                livenessService.reset()
+                livenessService.startLivenessDetection()
             }
-            is LivenessState.Success -> 1f
-            is LivenessState.Failed -> 0f // Reset progress on failure
+            is LivenessState.Success -> {
+                isAuthComplete = true
+            }
+            else -> {}
+        }
+    }
+
+    // Handle captured image for face authentication
+    LaunchedEffect(capturedImageUri) {
+        capturedImageUri?.let { uri ->
+            isProcessing = true
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    context.contentResolver.openInputStream(uri)?.use {
+                        BitmapFactory.decodeStream(it)
+                    }
+                } ?: throw Exception("Failed to decode image")
+
+                val storedImageUrl = sharedPreferencesHelper.getUserImageLink() ?: ""
+                if (storedImageUrl.isEmpty()) {
+                    Toast.makeText(context, "No registered face found", Toast.LENGTH_SHORT).show()
+                    return@let
+                }
+
+                authVM.faceAuth(bitmap, storedImageUrl) { success ->
+                    isProcessing = false
+                    if (success) {
+                        navController.navigate("home_screen") {
+                            popUpTo("splash_screen") { inclusive = true }
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Face authentication failed. Please try again.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            } catch (e: Exception) {
+                isProcessing = false
+                Toast.makeText(
+                    context,
+                    "Error processing image: ${e.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    // Show camera dialog when needed
+    if (showCameraScreen) {
+        Dialog(onDismissRequest = { showCameraScreen = false }) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                color = Color.White
+            ) {
+                CameraScreen(
+                    cameraVM = CameraViewModel(),
+                    userID = sharedPreferencesHelper.getid() ?: 0,
+                    onMediaCaptured = { uri, isVideo ->
+                        if (!isVideo) {
+                            capturedImageUri = uri
+                            showCameraScreen = false
+                        }
+                    }
+                )
+            }
         }
     }
 
     // Show loading screen while processing
     if (isProcessing) {
-        Dialog(onDismissRequest = { /* Do nothing to prevent dismissal while processing */ }) {
+        Dialog(onDismissRequest = { /* Prevent dismissal */ }) {
             Surface(
                 modifier = Modifier
                     .size(200.dp)
@@ -151,6 +197,7 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
         }
     }
 
+    // Main UI Card
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,13 +210,18 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Status indicator with clear instructions
+            // Status indicator
             Text(
                 text = when {
                     !isFaceDetected -> "Position Your Face in Frame"
-                    isAuthComplete -> "Liveliness check Successful!"
+                    isAuthComplete -> "Liveness Check Complete!"
                     livenessState is LivenessState.Failed -> "Authentication Failed"
-                    else -> getChallengeText(currentChallenge)
+                    else -> currentChallenge?.let { challenge ->
+                        when (challenge) {
+                            LivenessChallenge.TURN_LEFT -> "Please turn your head to the right"
+                            LivenessChallenge.TURN_RIGHT -> "Please turn your head to the left"
+                        }
+                    } ?: "Preparing verification system..."
                 },
                 color = when {
                     !isFaceDetected -> Color.Gray
@@ -185,7 +237,17 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
 
             // Progress indicator
             LinearProgressIndicator(
-                progress = { getProgressValue() },
+                progress = {
+                    when (livenessState) {
+                        is LivenessState.Initializing -> 0.1f
+                        is LivenessState.ChallengeInProgress -> {
+                            val state = livenessState as LivenessState.ChallengeInProgress
+                            (state.currentIndex + 1).toFloat() / (state.challenges.size + 1).toFloat()
+                        }
+                        is LivenessState.Success -> 1f
+                        is LivenessState.Failed -> 0f
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -215,8 +277,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
             ) {
                 FaceDetectionCameraPreview { faceDetected, leftTurn, rightTurn, _, _, faceDistance ->
                     isFaceDetected = faceDetected
-
-                    // Process face metrics
                     if (faceDetected) {
                         livenessService.processFaceMetrics(
                             FaceMetrics(
@@ -231,9 +291,62 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Challenge progress display with better visual feedback
+            // Action buttons
+            if (isAuthComplete) {
+                Button(
+                    onClick = { showCameraScreen = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppRed,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Authenticate Face")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Debug button - skip face auth
+                Button(
+                    onClick = {
+                        navController.navigate("home_screen") {
+                            popUpTo("splash_screen") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text("Skip Face Auth (Debug)")
+                }
+            } else if (livenessState is LivenessState.Failed) {
+                Button(
+                    onClick = {
+                        livenessService.reset()
+                        livenessService.startLivenessDetection()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AppRed,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Retry Liveness Check")
+                }
+            }
+
+            // Challenge progress display
             if (livenessState is LivenessState.ChallengeInProgress) {
                 val state = livenessState as LivenessState.ChallengeInProgress
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Challenge ${state.currentIndex + 1} of ${state.challenges.size}",
                     fontWeight = FontWeight.Bold,
@@ -243,12 +356,11 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Visual indicators for completed challenges
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    state.challenges.forEachIndexed { index, challenge ->
+                    state.challenges.forEachIndexed { index, _ ->
                         val isCompleted = index < state.currentIndex
                         val isCurrent = index == state.currentIndex
 
@@ -269,18 +381,6 @@ fun FaceAuth(navController: NavHostController, authVM: AuthViewModel) {
                         }
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Add helpful instruction text
-            if (!isAuthComplete && livenessState !is LivenessState.Failed) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "Follow the instructions to verify liveliness check",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
             }
         }
     }
