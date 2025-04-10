@@ -381,6 +381,23 @@ fun InteractionPart(
             )
         }
 
+        Button(
+            onClick = {
+                navController.navigate("home_screen") {
+                    popUpTo("splash_screen") { inclusive = true }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.LightGray,
+                contentColor = Color.Black
+            )
+        ) {
+            Text("Skip Customer Check (Debug)")
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         NewCustomerCard()
@@ -411,7 +428,7 @@ fun NewCustomerCard() {
                 contentDescription = "Piggy Bank",
                 modifier = Modifier
                     .size(35.dp)
-                    .padding(end = 16.dp)
+                    .padding(end = 10.dp)
             )
 
             Column(
