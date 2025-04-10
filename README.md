@@ -161,10 +161,12 @@ Response (JSON):
 
 ## 🖼️ Screenshots
 
-![Screenshot 1](app/src/main/assets/Screenshot_20250410_213124.jpg)
-![Screenshot 2](app/src/main/assets/Screenshot_20250410_213138.jpg)
-![Screenshot 3](app/src/main/assets/Screenshot_20250410_213144.jpg)
-![Screenshot 4](app/src/main/assets/Screenshot_20250410_213153.jpg)
+<div style="display: flex; justify-content: space-between;">
+  <img src="app/src/main/assets/Screenshot_20250410_213124.jpg" width="24%" alt="Screenshot 1" />
+  <img src="app/src/main/assets/Screenshot_20250410_213138.jpg" width="24%" alt="Screenshot 2" />
+  <img src="app/src/main/assets/Screenshot_20250410_213144.jpg" width="24%" alt="Screenshot 3" />
+  <img src="app/src/main/assets/Screenshot_20250410_213153.jpg" width="24%" alt="Screenshot 4" />
+</div>
 
 
 
