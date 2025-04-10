@@ -112,9 +112,6 @@ data class Ticket(
 
 ## 🔌 API Integration
 
-### Base URLs
-- Main API: `https://sggsapp.co.in/vyom/`
-- Face Comparison Service: `https://deepfaceapiservice-662317823212.asia-south1.run.app/compare_faces`
 
 ### API Endpoints
 - `generateTicket()` – Creates a new support request
@@ -170,22 +167,6 @@ Response (JSON):
 ![Screenshot 4](app/src/main/assets/Screenshot_20250410_213153.jpg)
 
 
-## 📋 Installation
-
-1. Clone the repository
-   ```
-   git clone https://github.com/your-username/vyom-assist.git
-   ```
-
-2. Open the project in Android Studio
-
-3. Configure your API keys in the project's `local.properties` file:
-   ```
-   FACE_API_KEY=your_face_api_key
-   DIALOGFLOW_KEY=your_dialogflow_key
-   ```
-
-4. Build and run the application
 
 ## 📍 Conclusion
 
