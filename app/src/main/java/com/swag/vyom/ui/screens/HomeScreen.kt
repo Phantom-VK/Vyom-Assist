@@ -159,7 +159,7 @@ fun AccountInfo() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Gajanan Palepwad",
+            text = "Vikramaditya",
             fontSize = 23.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,

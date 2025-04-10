@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.mlkit:face-detection:16.1.7@aar" external-system-id="GRADLE">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/76f53300fdfe1eee8c67ce53c6204738/transformed/face-detection-16.1.7/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/76f53300fdfe1eee8c67ce53c6204738/transformed/face-detection-16.1.7/AndroidManifest.xml" />
+      <root url="file://$USER_HOME$/.gradle/caches/8.11.1/transforms/3bfdb8abdf33252e4e2b86ef7844dede/transformed/face-detection-16.1.7/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.11.1/transforms/3bfdb8abdf33252e4e2b86ef7844dede/transformed/face-detection-16.1.7/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.mlkit/face-detection/16.1.7/542b118e67c881d7c185064c52f881dae688492a/face-detection-16.1.7-javadoc.jar!/" />
