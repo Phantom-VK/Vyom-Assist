@@ -122,7 +122,6 @@ data class Ticket(
 - `fetch_msg_history()` – Chat history retrieval
 - `sendMessage/getMessages()` – Chat messaging API
 
-## 🤖 FaceAuth API
 
 
 
@@ -178,12 +177,10 @@ Vyom Assist is a robust, scalable, and secure banking support solution built wit
 
 Contributions, issues, and feature requests are welcome. Feel free to check the issues page if you want to contribute.
 
-## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
 
 ## 📞 Contact
 
 For any inquiries, please contact:
-- Email: your.email@example.com
-- Project Link: https://github.com/your-username/vyom-assist
+- Email: vikramadityakhupse@gmail.com
+- Project Link: https://github.com/Phantom-VK/Vyom-Assist
